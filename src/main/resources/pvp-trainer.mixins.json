@@ -1,9 +1,10 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.obscure.pvpTrainer.mixin",
+  "package": "com.drypted.pvpTrainer.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "PlayerAttackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

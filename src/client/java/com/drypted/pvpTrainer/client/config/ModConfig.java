@@ -1,9 +1,9 @@
-package com.obscure.pvpTrainer.client.config;
+package com.drypted.pvpTrainer.client.config;
 
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 
-import static com.obscure.pvpTrainer.client.PvpTrainerClient.MOD_ID;
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.MOD_ID;
 
 @Config(name = MOD_ID)
 public class ModConfig implements ConfigData

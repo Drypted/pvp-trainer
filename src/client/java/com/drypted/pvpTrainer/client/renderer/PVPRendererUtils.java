@@ -1,14 +1,18 @@
-package com.obscure.pvpTrainer.client.renderer;
+package com.drypted.pvpTrainer.client.renderer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
+import static com.drypted.pvpTrainer.client.renderer.Constants.*;
+import static com.drypted.pvpTrainer.client.renderer.PVPHudScreen.ScreenH;
+import static com.drypted.pvpTrainer.client.renderer.PVPHudScreen.ScreenW;
+
 
 public class PVPRendererUtils
 {
-    private static final Font FONT = Minecraft.getInstance().font;
     public static final int DEFAULT_PADDING = 5;
+    private static final Font FONT = Minecraft.getInstance().font;
 
     public static void drawTextRelative(GuiGraphics g, String text, int posXPercent, int posYPercent, int bgColor, int fgColor)
     {
@@ -86,5 +90,27 @@ public class PVPRendererUtils
         g.drawString(FONT, text, scaledX, scaledY, fgColor, false);
 
         g.pose().popMatrix();
+    }
+
+    public static void drawHollowRect(GuiGraphics g, int x1, int y1, int x2, int y2, int innerThickness, int color)
+    {
+        // Top
+        g.fill(x1, y1, x2, y1 + innerThickness, color);
+        // Bottom
+        g.fill(x1, y2 - innerThickness, x2, y2, color);
+        // Left
+        g.fill(x1, y1 + innerThickness, x1 + innerThickness, y2 - innerThickness, color);
+        // Right
+        g.fill(x2 - innerThickness, y1 + innerThickness, x2, y2 - innerThickness, color);
+    }
+
+    public static void drawHotbarOutlineRect(GuiGraphics g, int slot, int color)
+    {
+        int slotX1 = (ScreenW / 2) - (HOTBAR_WIDTH / 2) + (slot * HOTBAR_SLOT_WIDTH);
+        int slotY1 = ScreenH - HOTBAR_HEIGHT;
+        int slotX2 = slotX1 + HOTBAR_SLOT_WIDTH + 2;
+        int slotY2 = slotY1 + HOTBAR_HEIGHT;
+
+        drawHollowRect(g, slotX1, slotY1, slotX2, slotY2, 3, color);
     }
 }

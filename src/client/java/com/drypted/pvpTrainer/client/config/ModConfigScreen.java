@@ -1,4 +1,4 @@
-package com.obscure.pvpTrainer.client.config;
+package com.drypted.pvpTrainer.client.config;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -16,15 +16,15 @@ class ModConfigScreen
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Component.translatable("com.obscure.pvptrainer.config.category.general"));
+                .setTitle(Component.translatable("com.drypted.pvptrainer.config.category.general"));
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
         // General category
         ConfigCategory general = builder.getOrCreateCategory(Component.translatable(
-                "com.obscure.pvptrainer.config.category.general"));
+                "com.drypted.pvptrainer.config.category.general"));
         general.addEntry(entryBuilder.startBooleanToggle(
-                        Component.translatable("com.obscure.pvptrainer.config.option.enable_hud"),
+                        Component.translatable("com.drypted.pvptrainer.config.option.enable_hud"),
                         config.enableHud
                 )
                                  .setSaveConsumer(value -> config.enableHud = value)
@@ -32,13 +32,13 @@ class ModConfigScreen
                                  .build());
 
         general.addEntry(entryBuilder.startBooleanToggle(
-                        Component.translatable("com.obscure.pvptrainer.config.option.show_in_creative"), config.showInCreative)
+                        Component.translatable("com.drypted.pvptrainer.config.option.show_in_creative"), config.showInCreative)
                                  .setSaveConsumer(value -> config.showInCreative = value)
                                  .setDefaultValue(ModConfig.DEFAULT.showInCreative)
                                  .build());
 
         general.addEntry(entryBuilder.startBooleanToggle(
-                        Component.translatable("com.obscure.pvptrainer.config.option.detect_mouse_buttons"), config.detectMouseButtons)
+                        Component.translatable("com.drypted.pvptrainer.config.option.detect_mouse_buttons"), config.detectMouseButtons)
                                  .setSaveConsumer(value -> config.detectMouseButtons = value)
                                  .setDefaultValue(ModConfig.DEFAULT.detectMouseButtons)
                                  .build());
@@ -71,10 +71,10 @@ class ModConfigScreen
         );
 
         // Hotbar category
-        ConfigCategory hotbar = builder.getOrCreateCategory(Component.translatable("com.obscure.pvptrainer.config.category.hotbar"));
+        ConfigCategory hotbar = builder.getOrCreateCategory(Component.translatable("com.drypted.pvptrainer.config.category.hotbar"));
         hotbar.addEntry(entryBuilder.startBooleanToggle(
                         Component.translatable(
-                                "com.obscure.pvptrainer.config.option.hotbar.show_keybinds"),
+                                "com.drypted.pvptrainer.config.option.hotbar.show_keybinds"),
                         config.hotbar.showHotbarKeybinds
                 )
                                 .setSaveConsumer(value -> config.hotbar.showHotbarKeybinds = value)
@@ -82,14 +82,14 @@ class ModConfigScreen
                                 .build());
 
         hotbar.addEntry(entryBuilder.startColorField(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.text_color"), config.hotbar.textColor)
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.text_color"), config.hotbar.textColor)
                                 .setSaveConsumer(value -> config.hotbar.textColor = value)
                                 .setDefaultValue(ModConfig.DEFAULT.hotbar.textColor)
                                 .build());
 
         hotbar.addEntry(entryBuilder.startColorField(
                         Component.translatable(
-                                "com.obscure.pvptrainer.config.option.label.background_color"),
+                                "com.drypted.pvptrainer.config.option.label.background_color"),
                         config.hotbar.backgroundColor
                 )
                                 .setSaveConsumer(value -> config.hotbar.backgroundColor = value)
@@ -98,7 +98,7 @@ class ModConfigScreen
 
         hotbar.addEntry(entryBuilder.startIntField(
                         Component.translatable(
-                                "com.obscure.pvptrainer.config.option.label.background_opacity"),
+                                "com.drypted.pvptrainer.config.option.label.background_opacity"),
                         config.hotbar.backgroundColorOpacity
                 )
                                 .setSaveConsumer(value -> config.hotbar.backgroundColorOpacity = value)
@@ -118,13 +118,13 @@ class ModConfigScreen
 
         // Enabled
         category.addEntry(entryBuilder.startBooleanToggle(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.enabled"), labelConfig.enabled)
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.enabled"), labelConfig.enabled)
                                   .setSaveConsumer(value -> labelConfig.enabled = value)
                                   .setDefaultValue(defaultConfig.enabled)
                                   .build());
         // Position
         category.addEntry(entryBuilder.startEnumSelector(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.position"),
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.position"),
                         ModConfig.LabelPosition.class,
                         labelConfig.position
                 )  //
@@ -133,20 +133,20 @@ class ModConfigScreen
                                   .build());
         // Text color
         category.addEntry(entryBuilder.startColorField(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.text_color"), labelConfig.textColor)
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.text_color"), labelConfig.textColor)
                                   .setSaveConsumer(value -> labelConfig.textColor = value)
                                   .setDefaultValue(defaultConfig.textColor)
                                   .build());
         // Background color
         category.addEntry(entryBuilder.startColorField(
                 Component.translatable(
-                        "com.obscure.pvptrainer.config.option.label.background_color"),
+                        "com.drypted.pvptrainer.config.option.label.background_color"),
                 labelConfig.backgroundColor
         ).setDefaultValue(defaultConfig.backgroundColor).setSaveConsumer(value -> labelConfig.backgroundColor = value).build());
         // Background opacity
         category.addEntry(entryBuilder.startIntField(
                         Component.translatable(
-                                "com.obscure.pvptrainer.config.option.label.background_opacity"),
+                                "com.drypted.pvptrainer.config.option.label.background_opacity"),
                         labelConfig.backgroundColorOpacity
                 )
                                   .setSaveConsumer(value -> labelConfig.backgroundColorOpacity = value)
@@ -154,7 +154,7 @@ class ModConfigScreen
                                   .build());
         // Padding
         category.addEntry(entryBuilder.startIntField(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.padding"),
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.padding"),
                         labelConfig.padding
                 )
                                   .setSaveConsumer(value -> labelConfig.padding = value)
@@ -162,7 +162,7 @@ class ModConfigScreen
                                   .build());
         // Margin
         category.addEntry(entryBuilder.startIntField(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.margin"),
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.margin"),
                         labelConfig.margin
                 )
                                   .setSaveConsumer(value -> labelConfig.margin = value)
@@ -170,7 +170,7 @@ class ModConfigScreen
                                   .build());
         // Label gap
         category.addEntry(entryBuilder.startIntField(
-                        Component.translatable("com.obscure.pvptrainer.config.option.label.stack_gap"),
+                        Component.translatable("com.drypted.pvptrainer.config.option.label.stack_gap"),
                         labelConfig.stackGap
                 )
                                   .setSaveConsumer(value -> labelConfig.stackGap = value)

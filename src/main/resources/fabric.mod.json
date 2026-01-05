@@ -5,28 +5,28 @@
   "name": "PVP Trainer",
   "description": "A mod that helps you in PVP Training",
   "authors": [
-    "obscure021"
+    "Drypted"
   ],
   "contact": {
-    "homepage": "https://github.com/obscure021",
+    "homepage": "https://github.com/Drypted",
     "email": "hollowed.main@gmail.com",
-    "sources": "https://github.com/obscure021/pvp-trainer-hud"
+    "sources": "https://github.com/Drypted/pvp-trainer"
   },
   "license": "All-Rights-Reserved",
   "icon": "assets/pvp-trainer/icon.png",
   "environment": "client",
   "entrypoints": {
     "fabric-datagen": [
-      "com.obscure.pvpTrainer.client.PvpTrainerDataGenerator"
+      "com.drypted.pvpTrainer.client.PvpTrainerDataGenerator"
     ],
     "client": [
-      "com.obscure.pvpTrainer.client.PvpTrainerClient"
+      "com.drypted.pvpTrainer.client.PvpTrainerClient"
     ],
     "main": [
-      "com.obscure.pvpTrainer.PvpTrainer"
+      "com.drypted.pvpTrainer.PvpTrainer"
     ],
     "modmenu": [
-      "com.obscure.pvpTrainer.client.config.ModMenuIntegration"
+      "com.drypted.pvpTrainer.client.config.ModMenuIntegration"
     ]
   },
   "mixins": [

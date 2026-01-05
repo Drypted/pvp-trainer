@@ -1,7 +1,7 @@
-package com.obscure.pvpTrainer.client.renderer;
+package com.drypted.pvpTrainer.client.renderer;
 
-import com.obscure.pvpTrainer.client.config.ModConfig.LabelConfig;
-import com.obscure.pvpTrainer.client.config.ModConfig.LabelPosition;
+import com.drypted.pvpTrainer.client.config.ModConfig.LabelConfig;
+import com.drypted.pvpTrainer.client.config.ModConfig.LabelPosition;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -10,28 +10,25 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.EnumMap;
 
-import static com.obscure.pvpTrainer.client.PvpTrainerClient.CONFIG;
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.CONFIG;
+import static com.drypted.pvpTrainer.client.renderer.Constants.*;
 
 public final class PVPHudScreen
 {
     // font
     public static final Minecraft CLIENT = Minecraft.getInstance();
     public static final Font FONT = CLIENT.font;
-    private static final EnumMap<LabelPosition, Integer> LABELS_STACK_OFFSETS = new EnumMap<>(LabelPosition.class);
-    // hotbar constants
-    private static final int HOTBAR_WIDTH = 182;
-    private static final int HOTBAR_HEIGHT = 22;
-    private static final int HOTBAR_SLOT_WIDTH = HOTBAR_WIDTH / 9;
-    private static final int HOTBAR_TEXT_PADDING = 3;
     // cache (for performance)
     // hotbar keybinds
-    private static final String[] HOTBAR_KEYBINDS = new String[9];
+    private static final String[] hotbarKeybinds = new String[9];
+    private static final EnumMap<LabelPosition, Integer> labelsStackOffset = new EnumMap<>(LabelPosition.class);
     // screen size
-    private static int screenW;
-    private static int screenH;
+    public static int ScreenW;
+    public static int ScreenH;
     // pitch angle
     private static float lastPitch = Float.NaN;
     private static String cachedPitch = "";
+
 
     public static void clientStartInit()
     {
@@ -42,7 +39,7 @@ public final class PVPHudScreen
     {
         for (int i = 0; i < 9; i++)
         {
-            HOTBAR_KEYBINDS[i] = CLIENT.options.keyHotbarSlots[i].getTranslatedKeyMessage().getString();
+            hotbarKeybinds[i] = CLIENT.options.keyHotbarSlots[i].getTranslatedKeyMessage().getString();
         }
     }
 
@@ -63,10 +60,10 @@ public final class PVPHudScreen
         if (!CONFIG.showInCreative && player.isCreative()) return;
 
         // update screen size
-        screenW = client.getWindow().getGuiScaledWidth();
-        screenH = client.getWindow().getGuiScaledHeight();
+        ScreenW = client.getWindow().getGuiScaledWidth();
+        ScreenH = client.getWindow().getGuiScaledHeight();
 
-        LABELS_STACK_OFFSETS.clear();
+        labelsStackOffset.clear();
 
         // movement state
         String moveState = //
@@ -110,7 +107,7 @@ public final class PVPHudScreen
 
     private static void drawLabel(GuiGraphics context, String text, LabelConfig labelConfig)
     {
-        int offset = LABELS_STACK_OFFSETS.getOrDefault(labelConfig.position, 0);
+        int offset = labelsStackOffset.getOrDefault(labelConfig.position, 0);
 
         int boxWidth = FONT.width(text) + (labelConfig.padding * 2);
         int boxHeight = FONT.lineHeight + (labelConfig.padding * 2);
@@ -127,25 +124,25 @@ public final class PVPHudScreen
             }
             case TOP_RIGHT ->
             {
-                xPos = screenW - boxWidth - labelConfig.margin;
+                xPos = ScreenW - boxWidth - labelConfig.margin;
                 yPos = labelConfig.margin + offset;
             }
             case BOTTOM_LEFT ->
             {
                 // - offset to stack upwards
                 xPos = labelConfig.margin;
-                yPos = screenH - boxHeight - labelConfig.margin - offset;
+                yPos = ScreenH - boxHeight - labelConfig.margin - offset;
             }
             case BOTTOM_RIGHT ->
             {
                 // - offset to stack upwards
-                xPos = screenW - boxWidth - labelConfig.margin;
-                yPos = screenH - boxHeight - labelConfig.margin - offset;
+                xPos = ScreenW - boxWidth - labelConfig.margin;
+                yPos = ScreenH - boxHeight - labelConfig.margin - offset;
             }
             case ABOVE_HOTBAR ->
             {
-                xPos = (screenW - boxWidth) / 2;
-                yPos = screenH - HOTBAR_HEIGHT - boxHeight - labelConfig.margin - offset;
+                xPos = (ScreenW - boxWidth) / 2;
+                yPos = ScreenH - HOTBAR_HEIGHT - boxHeight - labelConfig.margin - offset;
             }
             default -> throw new IllegalStateException();
         }
@@ -162,13 +159,13 @@ public final class PVPHudScreen
                 1.0f
         );
 
-        LABELS_STACK_OFFSETS.put(labelConfig.position, offset + boxHeight + labelConfig.stackGap);
+        labelsStackOffset.put(labelConfig.position, offset + boxHeight + labelConfig.stackGap);
     }
 
     private static void drawHotbar(GuiGraphics context)
     {
-        int hotbarX = (screenW - HOTBAR_WIDTH) / 2;
-        int hotbarY = screenH - HOTBAR_HEIGHT;
+        int hotbarX = (ScreenW - HOTBAR_WIDTH) / 2;
+        int hotbarY = ScreenH - HOTBAR_HEIGHT;
 
         for (int i = 0; i < 9; i++)
         {
@@ -177,7 +174,7 @@ public final class PVPHudScreen
 
             PVPRendererUtils.drawTextAbsolute(
                     context,
-                    HOTBAR_KEYBINDS[i],
+                    hotbarKeybinds[i],
                     baseX,
                     baseY,
                     CONFIG.hotbar.backgroundColor,

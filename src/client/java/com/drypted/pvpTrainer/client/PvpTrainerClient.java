@@ -1,7 +1,7 @@
-package com.obscure.pvpTrainer.client;
+package com.drypted.pvpTrainer.client;
 
-import com.obscure.pvpTrainer.client.config.ModConfig;
-import com.obscure.pvpTrainer.client.utils.PVPScreen;
+import com.drypted.pvpTrainer.client.config.ModConfig;
+import com.drypted.pvpTrainer.client.utils.PVPScreen;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
