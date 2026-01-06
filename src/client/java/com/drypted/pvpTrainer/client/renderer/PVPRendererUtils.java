@@ -1,5 +1,7 @@
 package com.drypted.pvpTrainer.client.renderer;
 
+import com.drypted.pvpTrainer.client.utils.Color;
+import com.drypted.pvpTrainer.client.utils.Colors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,17 +16,12 @@ public class PVPRendererUtils
     public static final int DEFAULT_PADDING = 5;
     private static final Font FONT = Minecraft.getInstance().font;
 
-    public static void drawTextRelative(GuiGraphics g, String text, int posXPercent, int posYPercent, int bgColor, int fgColor)
+    public static void drawTextRelative(GuiGraphics g, String text, int posXPercent, int posYPercent, Color bgColor, Color fgColor)
     {
-        drawTextRelative(g, text, posXPercent, posYPercent, bgColor, fgColor, 100, DEFAULT_PADDING, 1.0f);
+        drawTextRelative(g, text, posXPercent, posYPercent, bgColor, fgColor, DEFAULT_PADDING, 1.0f);
     }
 
-    public static void drawTextRelative(GuiGraphics g, String text, int posXPercent, int posYPercent, int bgColor, int fgColor, int bgOpacity)
-    {
-        drawTextRelative(g, text, posXPercent, posYPercent, bgColor, fgColor, bgOpacity, DEFAULT_PADDING, 1.0f);
-    }
-
-    public static void drawTextRelative(GuiGraphics g, String text, int posXPercent, int posYPercent, int bgColor, int fgColor, int bgOpacity, int padding, float scale)
+    public static void drawTextRelative(GuiGraphics g, String text, int posXPercent, int posYPercent, Color bgColor, Color fgColor, int padding, float scale)
     {
         int screenW = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenH = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -39,18 +36,13 @@ public class PVPRendererUtils
         float posX = (posXPercent * 0.01f) * (screenW - boxW);
         float posY = (posYPercent * 0.01f) * (screenH - boxH);
 
-        drawTextAbsolute(g, text, (int) posX, (int) posY, bgColor, fgColor, bgOpacity, padding, scale);
+        drawTextAbsolute(g, text, (int) posX, (int) posY, bgColor, fgColor, padding, scale);
     }
 
-    public static void drawTextAbsolute(GuiGraphics g, String text, int posX, int posY, int bgColor, int fgColor, int bgOpacity, int padding, float scale)
+    public static void drawTextAbsolute(GuiGraphics g, String text, int posX, int posY, Color bgColor, Color fgColor, int padding, float scale)
     {
-        // Background 50% opaque
-        bgColor = (bgOpacity << 24) | (bgColor & 0xFFFFFF);
-
         // ignore alpha value
-        fgColor = (fgColor & 0xFFFFFF);
-        // make fully opaque
-        fgColor = (0xFF << 24) | fgColor;
+        fgColor.makeOpaque();
 
         if (text.isEmpty()) return;
 
@@ -66,19 +58,19 @@ public class PVPRendererUtils
         int boxY2 = (int) (posY + boxH);
 
         // Fill main rectangle body
-        g.fill(boxX1 + 1, boxY1 + 1, boxX2 - 1, boxY2 - 1, bgColor);
+        g.fill(boxX1 + 1, boxY1 + 1, boxX2 - 1, boxY2 - 1, bgColor.asInt());
 
         // Fill pixel “rounded” corners
-        g.fill(boxX1, boxY1 + 1, boxX1 + 1, boxY2 - 1, bgColor); // left strip
-        g.fill(boxX2 - 1, boxY1 + 1, boxX2, boxY2 - 1, bgColor); // right strip
-        g.fill(boxX1 + 1, boxY1, boxX2 - 1, boxY1 + 1, bgColor); // top strip
-        g.fill(boxX1 + 1, boxY2 - 1, boxX2 - 1, boxY2, bgColor); // bottom strip
+        g.fill(boxX1, boxY1 + 1, boxX1 + 1, boxY2 - 1, bgColor.asInt()); // left strip
+        g.fill(boxX2 - 1, boxY1 + 1, boxX2, boxY2 - 1, bgColor.asInt()); // right strip
+        g.fill(boxX1 + 1, boxY1, boxX2 - 1, boxY1 + 1, bgColor.asInt()); // top strip
+        g.fill(boxX1 + 1, boxY2 - 1, boxX2 - 1, boxY2, bgColor.asInt()); // bottom strip
 
         // Optionally cut 1 pixel at corners for “rounded” look
-        g.fill(boxX1, boxY1, boxX1 + 1, boxY1 + 1, 0x00000000); // top-left
-        g.fill(boxX2 - 1, boxY1, boxX2, boxY1 + 1, 0x00000000); // top-right
-        g.fill(boxX1, boxY2 - 1, boxX1 + 1, boxY2, 0x00000000); // bottom-left
-        g.fill(boxX2 - 1, boxY2 - 1, boxX2, boxY2, 0x00000000); // bottom-right
+        g.fill(boxX1, boxY1, boxX1 + 1, boxY1 + 1, Colors.CLEAR); // top-left
+        g.fill(boxX2 - 1, boxY1, boxX2, boxY1 + 1, Colors.CLEAR); // top-right
+        g.fill(boxX1, boxY2 - 1, boxX1 + 1, boxY2, Colors.CLEAR); // bottom-left
+        g.fill(boxX2 - 1, boxY2 - 1, boxX2, boxY2, Colors.CLEAR); // bottom-right
 
         // Draw scaled text
         g.pose().pushMatrix();
@@ -87,24 +79,24 @@ public class PVPRendererUtils
         int scaledX = (int) ((posX + padding) / scale);
         int scaledY = (int) ((posY + padding) / scale);
 
-        g.drawString(FONT, text, scaledX, scaledY, fgColor, false);
+        g.drawString(FONT, text, scaledX, scaledY, fgColor.asInt(), false);
 
         g.pose().popMatrix();
     }
 
-    public static void drawHollowRect(GuiGraphics g, int x1, int y1, int x2, int y2, int innerThickness, int color)
+    public static void drawHollowRect(GuiGraphics g, int x1, int y1, int x2, int y2, int innerThickness, Color color)
     {
         // Top
-        g.fill(x1, y1, x2, y1 + innerThickness, color);
+        g.fill(x1, y1, x2, y1 + innerThickness, color.asInt());
         // Bottom
-        g.fill(x1, y2 - innerThickness, x2, y2, color);
+        g.fill(x1, y2 - innerThickness, x2, y2, color.asInt());
         // Left
-        g.fill(x1, y1 + innerThickness, x1 + innerThickness, y2 - innerThickness, color);
+        g.fill(x1, y1 + innerThickness, x1 + innerThickness, y2 - innerThickness, color.asInt());
         // Right
-        g.fill(x2 - innerThickness, y1 + innerThickness, x2, y2 - innerThickness, color);
+        g.fill(x2 - innerThickness, y1 + innerThickness, x2, y2 - innerThickness, color.asInt());
     }
 
-    public static void drawHotbarOutlineRect(GuiGraphics g, int slot, int color)
+    public static void drawHotbarOutlineRect(GuiGraphics g, int slot, Color color)
     {
         int slotX1 = (ScreenW / 2) - (HOTBAR_WIDTH / 2) + (slot * HOTBAR_SLOT_WIDTH);
         int slotY1 = ScreenH - HOTBAR_HEIGHT;

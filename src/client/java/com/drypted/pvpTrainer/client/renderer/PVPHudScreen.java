@@ -2,6 +2,7 @@ package com.drypted.pvpTrainer.client.renderer;
 
 import com.drypted.pvpTrainer.client.config.ModConfig.LabelConfig;
 import com.drypted.pvpTrainer.client.config.ModConfig.LabelPosition;
+import com.drypted.pvpTrainer.client.utils.Color;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -151,23 +152,18 @@ public final class PVPHudScreen
             }
             case CROSSHAIR ->
             {
-                xPos = (ScreenW - boxWidth) / 2 + margin;
-                yPos = (ScreenH / 2) + margin + offset;
+                xPos = (ScreenW - boxWidth) / 2;
+                yPos = (ScreenH + boxHeight) / 2 + margin + offset;
             }
             default -> throw new IllegalStateException();
         }
 
-        PVPRendererUtils.drawTextAbsolute(
-                context,
-                text,
-                xPos,
-                yPos,
-                labelConfig.backgroundColor,
-                labelConfig.textColor,
-                labelConfig.backgroundColorOpacity,
-                labelConfig.padding,
-                1.0f
-        );
+        Color backgroundColor = new Color(labelConfig.backgroundColor);
+        backgroundColor.applyAlpha(labelConfig.backgroundColorOpacity);
+
+        Color textColor = new Color(labelConfig.textColor);
+
+        PVPRendererUtils.drawTextAbsolute(context, text, xPos, yPos, backgroundColor, textColor, labelConfig.padding, 1.0f);
 
         labelsStackOffset.put(labelConfig.position, offset + boxHeight + labelConfig.stackGap);
     }
@@ -177,22 +173,18 @@ public final class PVPHudScreen
         int hotbarX = (ScreenW - HOTBAR_WIDTH) / 2;
         int hotbarY = ScreenH - HOTBAR_HEIGHT;
 
+        Color backgroundColor = new Color(CONFIG.hotbar.backgroundColor);
+        backgroundColor.applyAlpha(CONFIG.hotbar.backgroundColorOpacity);
+
+        Color textColor = new Color(CONFIG.hotbar.textColor);
+
         for (int i = 0; i < 9; i++)
         {
             int baseX = hotbarX + (i * HOTBAR_SLOT_WIDTH) + HOTBAR_TEXT_PADDING;
             int baseY = hotbarY + HOTBAR_TEXT_PADDING;
 
-            PVPRendererUtils.drawTextAbsolute(
-                    context,
-                    hotbarKeybinds[i],
-                    baseX,
-                    baseY,
-                    CONFIG.hotbar.backgroundColor,
-                    CONFIG.hotbar.textColor,
-                    CONFIG.hotbar.backgroundColorOpacity,
-                    2,
-                    0.7f
-            );
+
+            PVPRendererUtils.drawTextAbsolute(context, hotbarKeybinds[i], baseX, baseY, backgroundColor, textColor, 2, 0.7f);
         }
     }
 }

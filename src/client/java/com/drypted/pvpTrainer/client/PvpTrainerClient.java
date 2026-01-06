@@ -20,7 +20,6 @@ public class PvpTrainerClient implements ClientModInitializer
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     // render layer
     public static final ResourceLocation RENDER_LAYER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "pvp-trainer-layer");
-    public static int CURRENT_SLOT_CLIENT = 0;
     // config
     public static ModConfig CONFIG;
 
