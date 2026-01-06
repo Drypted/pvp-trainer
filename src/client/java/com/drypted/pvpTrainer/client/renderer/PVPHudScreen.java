@@ -30,7 +30,6 @@ public final class PVPHudScreen
     private static float lastPitch = Float.NaN;
     private static String cachedPitch = "";
 
-
     public static void clientStartInit()
     {
         refreshHotbarKeys();

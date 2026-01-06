@@ -1,19 +1,21 @@
 package com.drypted.pvpTrainer.client.config;
 
+import com.drypted.pvpTrainer.client.renderer.PVPHudScreen;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
-
 
 class ModConfigScreen extends Screen
 {
@@ -242,6 +244,12 @@ class ModConfigScreen extends Screen
 
     private void addResetAllButton()
     {
+        // button
+        final int Width = 80;
+        final int Height = 20;
+        final int XMargin = 10;
+        final int YMargin = 6;
+
         this.addRenderableWidget(Button.builder(
                 Component.translatable("com.drypted.pvptrainer.config.button.reset_all"), button -> {
                     // reset config
@@ -250,27 +258,36 @@ class ModConfigScreen extends Screen
                     // refresh
                     Minecraft.getInstance().setScreen(new ModConfigScreen(parent));
                 }
-        ).bounds(this.width - 90, 6, 80, 20).build());
+        ).bounds(this.width - Width - XMargin, YMargin, Width, Height).build());
+        // this.width = screen width
     }
 
     @Override
-    public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float delta)
+    public void onClose()
+    {
+        PVPHudScreen.refreshHotbarKeys();
+        Minecraft.getInstance().setScreen(parent);
+    }
+
+    // forwarding methods to outputScreen
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta)
     {
         outputScreen.render(graphics, mouseX, mouseY, delta);
         super.render(graphics, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean bl)
+    public boolean mouseClicked(MouseButtonEvent ev, boolean bl)
     {
-        return outputScreen.mouseClicked(mouseButtonEvent, bl) || super.mouseClicked(mouseButtonEvent, bl);
+        return outputScreen.mouseClicked(ev, bl) || super.mouseClicked(ev, bl);
     }
 
-
     @Override
-    public boolean mouseReleased(MouseButtonEvent mouseButtonEvent)
+    public boolean mouseReleased(MouseButtonEvent ev)
     {
-        return outputScreen.mouseReleased(mouseButtonEvent) || super.mouseReleased(mouseButtonEvent);
+        return outputScreen.mouseReleased(ev) || super.mouseReleased(ev);
     }
 
     @Override
@@ -280,14 +297,60 @@ class ModConfigScreen extends Screen
     }
 
     @Override
-    public boolean keyPressed(KeyEvent keyEvent)
+    public boolean mouseDragged(MouseButtonEvent ev, double d, double e)
     {
-        return outputScreen.keyPressed(keyEvent) || super.keyPressed(keyEvent);
+        return outputScreen.mouseDragged(ev, d, e) || super.mouseDragged(ev, d, e);
     }
 
     @Override
-    public void onClose()
+    public void mouseMoved(double d, double e)
     {
-        Minecraft.getInstance().setScreen(parent);
+        outputScreen.mouseMoved(d, e);
+        super.mouseMoved(d, e);
+    }
+
+    @Override
+    public boolean isMouseOver(double d, double e)
+    {
+        return outputScreen.isMouseOver(d, e) || super.isMouseOver(d, e);
+    }
+
+    @Override
+    public void afterMouseAction()
+    {
+        outputScreen.afterMouseAction();
+        super.afterMouseAction();
+    }
+
+    @Override
+    public void afterMouseMove()
+    {
+        outputScreen.afterMouseMove();
+        super.afterMouseMove();
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent ev)
+    {
+        return outputScreen.keyPressed(ev) || super.keyPressed(ev);
+    }
+
+    @Override
+    public boolean keyReleased(KeyEvent ev)
+    {
+        return outputScreen.keyReleased(ev) || super.keyReleased(ev);
+    }
+
+    @Override
+    public boolean charTyped(CharacterEvent ev)
+    {
+        return outputScreen.charTyped(ev) || super.charTyped(ev);
+    }
+
+    @Override
+    public void afterKeyboardAction()
+    {
+        outputScreen.afterKeyboardAction();
+        super.afterKeyboardAction();
     }
 }
