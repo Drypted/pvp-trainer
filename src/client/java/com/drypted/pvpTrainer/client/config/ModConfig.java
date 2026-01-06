@@ -8,17 +8,18 @@ import static com.drypted.pvpTrainer.client.PvpTrainerClient.MOD_ID;
 @Config(name = MOD_ID)
 public class ModConfig implements ConfigData
 {
+    public static final ModConfig DEFAULT = new ModConfig();
     public boolean enableHud = true;
     public boolean showInCreative = true;
-    public LabelConfig pitchAngleLabelConfig = new LabelConfig(LabelPosition.ABOVE_HOTBAR, 0, 0, 16);
-    public LabelConfig moveStateLabelConfig = new LabelConfig(LabelPosition.TOP_LEFT, 128);
-    public LabelConfig pressedKeyLabelConfig = new LabelConfig(LabelPosition.TOP_LEFT, 128);
+    public LabelConfig moveStateLabelConfig = LabelConfig.createDefaultConfig();
+    public LabelConfig pressedKeyLabelConfig = LabelConfig.createDefaultConfig();
+    public LabelConfig pitchAngleLabelConfig = LabelConfig.createPitchAngleDefaultConfig();
     public boolean detectMouseButtons = true;
     public Hotbar hotbar = new Hotbar();
 
     public enum LabelPosition
     {
-        TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, ABOVE_HOTBAR
+        TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, ABOVE_HOTBAR, CROSSHAIR
     }
 
     public static class LabelConfig
@@ -32,18 +33,33 @@ public class ModConfig implements ConfigData
         public int margin = 6;
         public int stackGap = 6;
 
-        LabelConfig(LabelPosition position, int backgroundColorOpacity)
+        public int creativeMargin = 6;
+
+        LabelConfig()
         {
-            this.position = position;
-            this.backgroundColorOpacity = backgroundColorOpacity;
+
         }
 
-        LabelConfig(LabelPosition position, int backgroundColorOpacity, int padding, int margin)
+        public static LabelConfig createDefaultConfig()
         {
-            this.position = position;
-            this.backgroundColorOpacity = backgroundColorOpacity;
-            this.padding = padding;
-            this.margin = margin;
+            LabelConfig cfg = new LabelConfig();
+            cfg.position = LabelPosition.TOP_LEFT;
+            cfg.backgroundColorOpacity = 128;
+            cfg.padding = 5;
+            cfg.margin = 6;
+            cfg.creativeMargin = 6;
+            return cfg;
+        }
+
+        public static LabelConfig createPitchAngleDefaultConfig()
+        {
+            LabelConfig cfg = new LabelConfig();
+            cfg.position = LabelPosition.ABOVE_HOTBAR;
+            cfg.backgroundColorOpacity = 128;
+            cfg.padding = 5;
+            cfg.margin = 0;
+            cfg.creativeMargin = 0;
+            return cfg;
         }
     }
 
@@ -54,7 +70,5 @@ public class ModConfig implements ConfigData
         public int backgroundColor = 0x000000;
         public int backgroundColorOpacity = 128;
     }
-
-    public static final ModConfig DEFAULT = new ModConfig();
 }
 

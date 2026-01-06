@@ -9,7 +9,8 @@
   "com.drypted.pvptrainer.config.option.enable_hud": "Enable HUD",
   "com.drypted.pvptrainer.config.option.show_in_creative": "Show in Creative",
   "com.drypted.pvptrainer.config.option.detect_mouse_buttons": "Detect Mouse Buttons",
-  "_LABEL_" : "",
+  "com.drypted.pvptrainer.config.button.reset_all": "Reset All",
+  "_LABEL_": "",
   "com.drypted.pvptrainer.config.option.label.enabled": "Enabled",
   "com.drypted.pvptrainer.config.option.label.position": "Position",
   "com.drypted.pvptrainer.config.option.label.text_color": "Text Color",
@@ -22,5 +23,7 @@
   "com.drypted.pvptrainer.config.enum.label_position.bottom_left": "Bottom Left",
   "com.drypted.pvptrainer.config.enum.label_position.bottom_right": "Bottom Right",
   "com.drypted.pvptrainer.config.enum.label_position.above_hotbar": "Above Hotbar",
-  "com.drypted.pvptrainer.config.option.label.stack_gap": "Stack Label Gap"
+  "com.drypted.pvptrainer.config.option.label.stack_gap": "Stack Label Gap",
+  "com.drypted.pvptrainer.config.option.label.creative_settings": "Creative Mode Only",
+  "com.drypted.pvptrainer.config.option.label.creative_margin": "Margin"
 }

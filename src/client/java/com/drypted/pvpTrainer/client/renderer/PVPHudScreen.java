@@ -6,6 +6,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.EnumMap;
@@ -109,6 +110,11 @@ public final class PVPHudScreen
     {
         int offset = labelsStackOffset.getOrDefault(labelConfig.position, 0);
 
+        int margin = labelConfig.margin;
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || player.isCreative()) margin = labelConfig.creativeMargin;
+
+
         int boxWidth = FONT.width(text) + (labelConfig.padding * 2);
         int boxHeight = FONT.lineHeight + (labelConfig.padding * 2);
 
@@ -119,30 +125,35 @@ public final class PVPHudScreen
         {
             case TOP_LEFT ->
             {
-                xPos = labelConfig.margin;
-                yPos = labelConfig.margin + offset;
+                xPos = margin;
+                yPos = margin + offset;
             }
             case TOP_RIGHT ->
             {
-                xPos = ScreenW - boxWidth - labelConfig.margin;
-                yPos = labelConfig.margin + offset;
+                xPos = ScreenW - boxWidth - margin;
+                yPos = margin + offset;
             }
             case BOTTOM_LEFT ->
             {
                 // - offset to stack upwards
-                xPos = labelConfig.margin;
-                yPos = ScreenH - boxHeight - labelConfig.margin - offset;
+                xPos = margin;
+                yPos = ScreenH - boxHeight - margin - offset;
             }
             case BOTTOM_RIGHT ->
             {
                 // - offset to stack upwards
-                xPos = ScreenW - boxWidth - labelConfig.margin;
-                yPos = ScreenH - boxHeight - labelConfig.margin - offset;
+                xPos = ScreenW - boxWidth - margin;
+                yPos = ScreenH - boxHeight - margin - offset;
             }
             case ABOVE_HOTBAR ->
             {
                 xPos = (ScreenW - boxWidth) / 2;
-                yPos = ScreenH - HOTBAR_HEIGHT - boxHeight - labelConfig.margin - offset;
+                yPos = ScreenH - HOTBAR_HEIGHT - boxHeight - margin - offset;
+            }
+            case CROSSHAIR ->
+            {
+                xPos = (ScreenW - boxWidth) / 2 + margin;
+                yPos = (ScreenH / 2) + margin + offset;
             }
             default -> throw new IllegalStateException();
         }
