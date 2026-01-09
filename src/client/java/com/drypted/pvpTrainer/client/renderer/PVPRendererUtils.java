@@ -6,9 +6,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.ScreenH;
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.ScreenW;
 import static com.drypted.pvpTrainer.client.renderer.Constants.*;
-import static com.drypted.pvpTrainer.client.renderer.PVPHudScreen.ScreenH;
-import static com.drypted.pvpTrainer.client.renderer.PVPHudScreen.ScreenW;
 
 
 public class PVPRendererUtils

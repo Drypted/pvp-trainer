@@ -1,50 +1,53 @@
 package com.drypted.pvpTrainer.client.renderer;
 
-import com.drypted.pvpTrainer.client.config.ModConfig.LabelConfig;
-import com.drypted.pvpTrainer.client.config.ModConfig.LabelPosition;
+import com.drypted.pvpTrainer.client.config.ModConfig;
 import com.drypted.pvpTrainer.client.utils.Color;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.EnumMap;
 
-import static com.drypted.pvpTrainer.client.PvpTrainerClient.CONFIG;
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.*;
 import static com.drypted.pvpTrainer.client.renderer.Constants.*;
 
-public final class PVPHudScreen
+public final class PVPLabels
 {
-    // font
-    public static final Minecraft CLIENT = Minecraft.getInstance();
-    public static final Font FONT = CLIENT.font;
     // cache (for performance)
+    private static final EnumMap<ModConfig.LabelPosition, Integer> labelsStackOffset = new EnumMap<>(ModConfig.LabelPosition.class);
     // hotbar keybinds
     private static final String[] hotbarKeybinds = new String[9];
-    private static final EnumMap<LabelPosition, Integer> labelsStackOffset = new EnumMap<>(LabelPosition.class);
-    // screen size
-    public static int ScreenW;
-    public static int ScreenH;
+    private static String lastPressedKey;
+    private static String moveState;
     // pitch angle
     private static float lastPitch = Float.NaN;
     private static String cachedPitch = "";
 
-    public static void clientStartInit()
+
+    public static void init()
     {
         refreshHotbarKeys();
     }
 
-    public static void refreshHotbarKeys()
+    public static void tick(Minecraft client)
     {
-        for (int i = 0; i < 9; i++)
-        {
-            hotbarKeybinds[i] = CLIENT.options.keyHotbarSlots[i].getTranslatedKeyMessage().getString();
-        }
+        // poll current key once every tick
+        long window = client.getWindow().handle();
+        refreshLastKey(window);
+
+        LocalPlayer player = client.player;
+        if (player == null) return;
+
+        moveState = //
+                player.isCrouching() ? "Sneaking" : // else
+                        player.isSprinting() ? "Sprinting" : "";
     }
 
-    public static void render(GuiGraphics context, DeltaTracker tickCounter, String lastKey)
+    public static void render(GuiGraphics context, DeltaTracker tickCounter)
     {
         // if disabled; RETURN
         if (!CONFIG.enableHud) return;
@@ -60,16 +63,7 @@ public final class PVPHudScreen
         // if creative mode and creative gui disabled; RETURN
         if (!CONFIG.showInCreative && player.isCreative()) return;
 
-        // update screen size
-        ScreenW = client.getWindow().getGuiScaledWidth();
-        ScreenH = client.getWindow().getGuiScaledHeight();
-
         labelsStackOffset.clear();
-
-        // movement state
-        String moveState = //
-                player.isCrouching() ? "Sneaking ..." : // else
-                        player.isSprinting() ? "Sprinting ..." : "";
 
         if (CONFIG.moveStateLabelConfig.enabled)
         {
@@ -78,7 +72,7 @@ public final class PVPHudScreen
 
         if (CONFIG.pressedKeyLabelConfig.enabled)
         {
-            drawLabel(context, lastKey, CONFIG.pressedKeyLabelConfig);
+            drawLabel(context, lastPressedKey, CONFIG.pressedKeyLabelConfig);
         }
 
         if (CONFIG.pitchAngleLabelConfig.enabled)
@@ -91,6 +85,35 @@ public final class PVPHudScreen
         {
             drawHotbar(context);
         }
+    }
+
+    private static void refreshLastKey(long window)
+    {
+        // Keyboard Buttons
+        for (int key = GLFW.GLFW_KEY_SPACE; key <= GLFW.GLFW_KEY_LAST; key++)
+        {
+            if (GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS)
+            {
+                InputConstants.Key mcKey = InputConstants.Type.KEYSYM.getOrCreate(key);
+                lastPressedKey = mcKey.getDisplayName().getString();
+                return;
+            }
+        }
+
+        // Check mouse buttons
+        if (CONFIG.detectMouseButtons)
+        {
+            for (int button = GLFW.GLFW_MOUSE_BUTTON_1; button <= GLFW.GLFW_MOUSE_BUTTON_LAST; button++)
+            {
+                if (GLFW.glfwGetMouseButton(window, button) == GLFW.GLFW_PRESS)
+                {
+                    lastPressedKey = "Mouse " + button;
+                    return;
+                }
+            }
+        }
+
+        lastPressedKey = "";
     }
 
     private static String getPitchText(float pitch)
@@ -106,7 +129,15 @@ public final class PVPHudScreen
         return cachedPitch;
     }
 
-    private static void drawLabel(GuiGraphics context, String text, LabelConfig labelConfig)
+    public static void refreshHotbarKeys()
+    {
+        for (int i = 0; i < 9; i++)
+        {
+            hotbarKeybinds[i] = CLIENT.options.keyHotbarSlots[i].getTranslatedKeyMessage().getString();
+        }
+    }
+
+    private static void drawLabel(GuiGraphics context, String text, ModConfig.LabelConfig labelConfig)
     {
         int offset = labelsStackOffset.getOrDefault(labelConfig.position, 0);
 
@@ -183,8 +214,16 @@ public final class PVPHudScreen
             int baseX = hotbarX + (i * HOTBAR_SLOT_WIDTH) + HOTBAR_TEXT_PADDING;
             int baseY = hotbarY + HOTBAR_TEXT_PADDING;
 
-
-            PVPRendererUtils.drawTextAbsolute(context, hotbarKeybinds[i], baseX, baseY, backgroundColor, textColor, 2, 0.7f);
+            PVPRendererUtils.drawTextAbsolute(
+                    context,
+                    PVPLabels.hotbarKeybinds[i],
+                    baseX,
+                    baseY,
+                    backgroundColor,
+                    textColor,
+                    2,
+                    0.7f
+            );
         }
     }
 }

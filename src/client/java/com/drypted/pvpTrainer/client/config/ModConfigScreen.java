@@ -1,6 +1,6 @@
 package com.drypted.pvpTrainer.client.config;
 
-import com.drypted.pvpTrainer.client.renderer.PVPHudScreen;
+import com.drypted.pvpTrainer.client.renderer.PVPLabels;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -265,7 +265,7 @@ class ModConfigScreen extends Screen
     @Override
     public void onClose()
     {
-        PVPHudScreen.refreshHotbarKeys();
+        PVPLabels.refreshHotbarKeys();
         Minecraft.getInstance().setScreen(parent);
     }
 
