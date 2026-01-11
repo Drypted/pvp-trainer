@@ -1,4 +1,4 @@
-package com.drypted.pvpTrainer.client.renderer;
+package com.drypted.pvpTrainer.client.hudOverlay;
 
 import com.drypted.pvpTrainer.client.config.ModConfig;
 import com.drypted.pvpTrainer.client.utils.Color;
@@ -12,8 +12,9 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.EnumMap;
 
-import static com.drypted.pvpTrainer.client.PvpTrainerClient.*;
-import static com.drypted.pvpTrainer.client.renderer.Constants.*;
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.CLIENT;
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.CONFIG;
+import static com.drypted.pvpTrainer.client.hudOverlay.Constants.*;
 
 public final class PVPLabels
 {
@@ -146,8 +147,8 @@ public final class PVPLabels
         if (player == null || player.isCreative()) margin = labelConfig.creativeMargin;
 
 
-        int boxWidth = FONT.width(text) + (labelConfig.padding * 2);
-        int boxHeight = FONT.lineHeight + (labelConfig.padding * 2);
+        int boxWidth = CLIENT.font.width(text) + (labelConfig.padding * 2);
+        int boxHeight = CLIENT.font.lineHeight + (labelConfig.padding * 2);
 
         int xPos;
         int yPos;
@@ -161,30 +162,30 @@ public final class PVPLabels
             }
             case TOP_RIGHT ->
             {
-                xPos = ScreenW - boxWidth - margin;
+                xPos = GetScreenW() - boxWidth - margin;
                 yPos = margin + offset;
             }
             case BOTTOM_LEFT ->
             {
                 // - offset to stack upwards
                 xPos = margin;
-                yPos = ScreenH - boxHeight - margin - offset;
+                yPos = GetScreenH() - boxHeight - margin - offset;
             }
             case BOTTOM_RIGHT ->
             {
                 // - offset to stack upwards
-                xPos = ScreenW - boxWidth - margin;
-                yPos = ScreenH - boxHeight - margin - offset;
+                xPos = GetScreenW() - boxWidth - margin;
+                yPos = GetScreenH() - boxHeight - margin - offset;
             }
             case ABOVE_HOTBAR ->
             {
-                xPos = (ScreenW - boxWidth) / 2;
-                yPos = ScreenH - HOTBAR_HEIGHT - boxHeight - margin - offset;
+                xPos = (GetScreenW() - boxWidth) / 2;
+                yPos = GetScreenH() - HOTBAR_HEIGHT - boxHeight - margin - offset;
             }
             case CROSSHAIR ->
             {
-                xPos = (ScreenW - boxWidth) / 2;
-                yPos = (ScreenH + boxHeight) / 2 + margin + offset;
+                xPos = (GetScreenW() - boxWidth) / 2;
+                yPos = (GetScreenH() + boxHeight) / 2 + margin + offset;
             }
             default -> throw new IllegalStateException();
         }
@@ -201,8 +202,8 @@ public final class PVPLabels
 
     private static void drawHotbar(GuiGraphics context)
     {
-        int hotbarX = (ScreenW - HOTBAR_WIDTH) / 2;
-        int hotbarY = ScreenH - HOTBAR_HEIGHT;
+        int hotbarX = (GetScreenW() - HOTBAR_WIDTH) / 2;
+        int hotbarY = GetScreenH() - HOTBAR_HEIGHT;
 
         Color backgroundColor = new Color(CONFIG.hotbar.backgroundColor);
         backgroundColor.applyAlpha(CONFIG.hotbar.backgroundColorOpacity);

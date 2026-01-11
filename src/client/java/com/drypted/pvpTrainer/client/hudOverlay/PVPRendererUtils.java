@@ -1,4 +1,4 @@
-package com.drypted.pvpTrainer.client.renderer;
+package com.drypted.pvpTrainer.client.hudOverlay;
 
 import com.drypted.pvpTrainer.client.utils.Color;
 import com.drypted.pvpTrainer.client.utils.Colors;
@@ -6,9 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
-import static com.drypted.pvpTrainer.client.PvpTrainerClient.ScreenH;
-import static com.drypted.pvpTrainer.client.PvpTrainerClient.ScreenW;
-import static com.drypted.pvpTrainer.client.renderer.Constants.*;
+import static com.drypted.pvpTrainer.client.hudOverlay.Constants.*;
 
 
 public class PVPRendererUtils
@@ -98,8 +96,8 @@ public class PVPRendererUtils
 
     public static void drawHotbarOutlineRect(GuiGraphics g, int slot, Color color)
     {
-        int slotX1 = (ScreenW / 2) - (HOTBAR_WIDTH / 2) + (slot * HOTBAR_SLOT_WIDTH);
-        int slotY1 = ScreenH - HOTBAR_HEIGHT;
+        int slotX1 = (GetScreenW() / 2) - (HOTBAR_WIDTH / 2) + (slot * HOTBAR_SLOT_WIDTH);
+        int slotY1 = GetScreenH() - HOTBAR_HEIGHT;
         int slotX2 = slotX1 + HOTBAR_SLOT_WIDTH + 2;
         int slotY2 = slotY1 + HOTBAR_HEIGHT;
 

@@ -1,14 +1,15 @@
 package com.drypted.pvpTrainer.client;
 
 import com.drypted.pvpTrainer.client.config.ModConfig;
-import com.drypted.pvpTrainer.client.renderer.PVPAttack;
-import com.drypted.pvpTrainer.client.renderer.PVPLabels;
+import com.drypted.pvpTrainer.client.hudOverlay.PVPAttackDetector;
+import com.drypted.pvpTrainer.client.hudOverlay.PVPLabels;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import org.slf4j.Logger;
@@ -23,10 +24,7 @@ public class PvpTrainerClient implements ClientModInitializer
     public static final ResourceLocation RENDER_LAYER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "pvp-trainer-layer");
     // config
     public static ModConfig CONFIG;
-    // cached screen size
-    public static int ScreenW;
-    public static int ScreenH;
-
+    public static Minecraft CLIENT;
 
     @Override
     public void onInitializeClient()
@@ -41,18 +39,15 @@ public class PvpTrainerClient implements ClientModInitializer
 
         // init screens
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+            CLIENT = client;
             PVPLabels.init();
-            PVPAttack.init();
+            PVPAttackDetector.init();
         });
 
         // tick screens
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            // update screen size
-            ScreenW = client.getWindow().getGuiScaledWidth();
-            ScreenH = client.getWindow().getGuiScaledHeight();
-
             PVPLabels.tick(client);
-            PVPAttack.tick(client);
+            PVPAttackDetector.tick(client);
         });
 
         // render screens
@@ -60,7 +55,7 @@ public class PvpTrainerClient implements ClientModInitializer
                 RENDER_LAYER, //
                 (guiGraphics, deltaTracker) -> {
                     PVPLabels.render(guiGraphics, deltaTracker);
-                    PVPAttack.render(guiGraphics, deltaTracker);
+                    PVPAttackDetector.render(guiGraphics, deltaTracker);
                 }
         );
     }

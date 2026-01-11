@@ -1,6 +1,6 @@
 package com.drypted.pvpTrainer.client.config;
 
-import com.drypted.pvpTrainer.client.renderer.PVPLabels;
+import com.drypted.pvpTrainer.client.hudOverlay.PVPLabels;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
