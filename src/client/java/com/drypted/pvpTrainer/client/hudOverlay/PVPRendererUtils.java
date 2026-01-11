@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
-import static com.drypted.pvpTrainer.client.hudOverlay.Constants.*;
+import static com.drypted.pvpTrainer.client.hudOverlay.SharedConstants.*;
 
 
 public class PVPRendererUtils

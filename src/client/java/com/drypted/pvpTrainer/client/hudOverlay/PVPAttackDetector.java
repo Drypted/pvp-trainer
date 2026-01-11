@@ -16,12 +16,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
-import static com.drypted.pvpTrainer.client.hudOverlay.Constants.GetScreenH;
-import static com.drypted.pvpTrainer.client.hudOverlay.Constants.GetScreenW;
+import static com.drypted.pvpTrainer.client.hudOverlay.SharedConstants.GetScreenH;
+import static com.drypted.pvpTrainer.client.hudOverlay.SharedConstants.GetScreenW;
 
 public final class PVPAttackDetector
 {
     private static final int SHOW_ATTACK_TIMER_MAX = 20;
+    private static final int RESET_ATTACK_TIMER = 5;
     private static PVPAttackType attackType = PVPAttackType.NONE;
     private static int showAttackTimer = SHOW_ATTACK_TIMER_MAX;
 
@@ -50,7 +51,7 @@ public final class PVPAttackDetector
             int centerY = GetScreenH() / 2;
 
             // Render left of crosshair
-            int x = centerX - 24;
+            int x = centerX + 4;
             int y = centerY - 8;
 
             guiGraphics.renderItem(stack, x, y);
@@ -59,6 +60,9 @@ public final class PVPAttackDetector
 
     public static void detectAttackType(@NotNull Player player, Entity target)
     {
+        // skip if already showing
+        if (showAttackTimer > (SHOW_ATTACK_TIMER_MAX - RESET_ATTACK_TIMER)) return;
+
         // reset timer
         showAttackTimer = SHOW_ATTACK_TIMER_MAX;
 

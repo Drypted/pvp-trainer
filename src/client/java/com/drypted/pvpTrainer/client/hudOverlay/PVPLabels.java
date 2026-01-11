@@ -14,7 +14,7 @@ import java.util.EnumMap;
 
 import static com.drypted.pvpTrainer.client.PvpTrainerClient.CLIENT;
 import static com.drypted.pvpTrainer.client.PvpTrainerClient.CONFIG;
-import static com.drypted.pvpTrainer.client.hudOverlay.Constants.*;
+import static com.drypted.pvpTrainer.client.hudOverlay.SharedConstants.*;
 
 public final class PVPLabels
 {

@@ -2,7 +2,7 @@ package com.drypted.pvpTrainer.client.hudOverlay;
 
 import static com.drypted.pvpTrainer.client.PvpTrainerClient.CLIENT;
 
-public class Constants
+public class SharedConstants
 {
     // hotbar constants
     public static final int HOTBAR_WIDTH = 182;
