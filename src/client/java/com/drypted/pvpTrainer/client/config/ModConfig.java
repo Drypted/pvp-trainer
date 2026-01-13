@@ -32,8 +32,8 @@ public class ModConfig implements ConfigData
     {
         public boolean enabled = true;
         public LabelPosition position;
-        public int textColor = Colors.WHITE; // white
-        public int backgroundColor = Colors.BLACK; // black
+        public int textColor = Colors.iWHITE; // white
+        public int backgroundColor = Colors.iBLACK; // black
         public int backgroundColorOpacity;
         public int padding = 5;
         public int margin = 6;
@@ -56,7 +56,7 @@ public class ModConfig implements ConfigData
         {
             LabelConfig cfg = new LabelConfig();
             cfg.position = LabelPosition.ABOVE_HOTBAR;
-            cfg.textColor = Colors.YELLOW; // yellow
+            cfg.textColor = Colors.iYELLOW; // yellow
             cfg.backgroundColorOpacity = 64;
             cfg.padding = 4;
             cfg.margin = 42;
@@ -79,8 +79,8 @@ public class ModConfig implements ConfigData
     public static class Hotbar
     {
         public boolean showHotbarKeybinds = true;
-        public int textColor = Colors.WHITE;
-        public int backgroundColor = Colors.BLACK;
+        public int textColor = Colors.iWHITE;
+        public int backgroundColor = Colors.iBLACK;
         public int backgroundColorOpacity = 128;
     }
 }

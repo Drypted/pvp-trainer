@@ -65,10 +65,10 @@ public class PVPRendererUtils
         g.fill(boxX1 + 1, boxY2 - 1, boxX2 - 1, boxY2, bgColor.asInt()); // bottom strip
 
         // Optionally cut 1 pixel at corners for “rounded” look
-        g.fill(boxX1, boxY1, boxX1 + 1, boxY1 + 1, Colors.CLEAR); // top-left
-        g.fill(boxX2 - 1, boxY1, boxX2, boxY1 + 1, Colors.CLEAR); // top-right
-        g.fill(boxX1, boxY2 - 1, boxX1 + 1, boxY2, Colors.CLEAR); // bottom-left
-        g.fill(boxX2 - 1, boxY2 - 1, boxX2, boxY2, Colors.CLEAR); // bottom-right
+        g.fill(boxX1, boxY1, boxX1 + 1, boxY1 + 1, Colors.iCLEAR); // top-left
+        g.fill(boxX2 - 1, boxY1, boxX2, boxY1 + 1, Colors.iCLEAR); // top-right
+        g.fill(boxX1, boxY2 - 1, boxX1 + 1, boxY2, Colors.iCLEAR); // bottom-left
+        g.fill(boxX2 - 1, boxY2 - 1, boxX2, boxY2, Colors.iCLEAR); // bottom-right
 
         // Draw scaled text
         g.pose().pushMatrix();

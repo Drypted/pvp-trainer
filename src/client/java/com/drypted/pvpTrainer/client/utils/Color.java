@@ -40,4 +40,9 @@ public class Color
     {
         return this.color;
     }
+
+    public Color withAlpha(int alpha)
+    {
+        return fromRGBA((this.color >> 16) & 0xFF, (this.color >> 8) & 0xFF, this.color & 0xFF, alpha);
+    }
 }
