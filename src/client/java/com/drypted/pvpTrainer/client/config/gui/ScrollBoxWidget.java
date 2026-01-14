@@ -2,6 +2,7 @@ package com.drypted.pvpTrainer.client.config.gui;
 
 import com.drypted.pvpTrainer.client.utils.Color;
 import com.drypted.pvpTrainer.client.utils.Colors;
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -14,140 +15,249 @@ import java.util.List;
 
 public class ScrollBoxWidget extends AbstractScrollArea
 {
-    private final List<AbstractWidget> children = new ArrayList<>();
-    private final Color bgColor;
+    private final List<WidgetEntry> children = new ArrayList<>();
     private final int padding;
+    private final Color bgColor;
+    private final Color outlineColor;
+    private final Color scrollbarColor;
+    private final Color scrollerColor;
 
-    public ScrollBoxWidget(int x, int y, int width, int height, Color bgColor, int padding)
+    private boolean scrolling;
+
+    public ScrollBoxWidget(int x, int y, int width, int height, int padding, Color bgColor, Color outlineColor, Color scrollbarColor, Color scrollerColor)
     {
         super(x, y, width, height, Component.empty());
         this.bgColor = bgColor;
         this.padding = padding;
+        this.outlineColor = outlineColor;
+        this.scrollbarColor = scrollbarColor;
+        this.scrollerColor = scrollerColor;
     }
 
     /* ---------------- Children ---------------- */
 
-    public void addChild(AbstractWidget widget)
+    public void addChild(AbstractWidget widget, int contentX, int contentY)
     {
-        children.add(widget);
+        this.children.add(new WidgetEntry(widget, contentX, contentY));
     }
+
+
+    /* ---------------- Scroll ---------------- */
 
     public void removeChild(AbstractWidget widget)
     {
-        children.remove(widget);
+        children.removeIf(entry -> entry.widget == widget);
     }
 
     @Override
     protected int contentHeight()
     {
         int max = 0;
-        for (AbstractWidget w: children)
+        for (WidgetEntry e : children)
         {
-            max = Math.max(max, w.getY() + w.getHeight() - getY());
+            max = Math.max(max, e.contentY + e.widget.getHeight());
         }
         return max + padding;
-    }
-
-    @Override
-    protected double scrollRate()
-    {
-        return 10.0; // pixels per mouse wheel tick
     }
 
     /* ---------------- Render ---------------- */
 
     @Override
+    protected double scrollRate()
+    {
+        return 10.0;
+    }
+
+    @Override
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta)
     {
+        layoutChildren();
+
         final int x1 = getX();
         final int y1 = getY();
         final int x2 = x1 + width;
         final int y2 = y1 + height;
 
+        drawBackground(g, x1, y1, x2, y2);
+        drawChildren(g, mouseX, mouseY, delta, x1, y1, x2, y2);
+        renderCustomScrollbar(g, mouseX, mouseY);
+    }
+
+    private void layoutChildren()
+    {
+        int scroll = (int) scrollAmount();
+
+        for (WidgetEntry e : children)
+        {
+            e.widget.setPosition(getX() + e.contentX, getY() + e.contentY - scroll);
+        }
+    }
+
+
+    private void drawBackground(GuiGraphics g, int x1, int y1, int x2, int y2)
+    {
         // Background
         g.fill(x1 + 1, y1 + 1, x2 - 1, y2 - 1, bgColor.asInt());
 
         // Border
-        g.fill(x1, y1, x2, y1 + 1, Colors.WHITE.asInt());
-        g.fill(x1, y2 - 1, x2, y2, Colors.WHITE.asInt());
-        g.fill(x1, y1, x1 + 1, y2, Colors.WHITE.asInt());
-        g.fill(x2 - 1, y1, x2, y2, Colors.WHITE.asInt());
+        g.fill(x1, y1, x2, y1 + 1, outlineColor.asInt());
+        g.fill(x1, y2 - 1, x2, y2, outlineColor.asInt());
+        g.fill(x1, y1, x1 + 1, y2, outlineColor.asInt());
+        g.fill(x2 - 1, y1, x2, y2, outlineColor.asInt());
+    }
 
-        // Enable scissor / clip for scrolling
+    private void drawChildren(GuiGraphics g, int mouseX, int mouseY, float delta, int x1, int y1, int x2, int y2)
+    {
+        // Clip
         g.enableScissor(x1 + 1, y1 + 1, x2 - 1, y2 - 1);
 
-        // Render children with scroll offset
-        for (AbstractWidget child: children)
+        for (WidgetEntry e : children)
         {
-            int oldY = child.getY();
-            child.setY(oldY - (int) scrollAmount());
+            AbstractWidget child = e.widget;
+            if (!child.visible) continue;
             child.render(g, mouseX, mouseY, delta);
-            child.setY(oldY);
         }
 
         g.disableScissor();
-
-        // Render custom scrollbar
     }
 
-    /* ---------------- Mouse / Scroll ---------------- */
+    /* ---------------- Input ---------------- */
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput)
+    public boolean updateScrolling(MouseButtonEvent mouseButtonEvent)
     {
-
+        this.scrolling = super.updateScrolling(mouseButtonEvent);
+        return this.scrolling;
     }
 
-    @Override
-    public void onClick(MouseButtonEvent mouseButtonEvent, boolean bl)
+    private void renderCustomScrollbar(GuiGraphics g, int mouseX, int mouseY)
     {
-        AbstractWidget widget = getWidgetAt(mouseButtonEvent);
-        if (widget == null)
+        if (!scrollbarVisible())
         {
             return;
         }
 
-        widget.mouseClicked(mouseButtonEvent, bl);
+        int x = scrollBarX();
+        int h = scrollerHeight();
+        int y = scrollBarY();
+
+        // scrollbar background
+        g.fill(x, getY(), x + SCROLLBAR_WIDTH, getBottom(), scrollbarColor.asInt());
+        // scroller
+        g.fill(x, y, x + SCROLLBAR_WIDTH, y + h, scrollerColor.asInt());
+        // line
+        g.fill(x, getY(), x + 1, getBottom(), outlineColor.asInt());
+
+        if (isOverScrollbar(mouseX, mouseY))
+        {
+            g.requestCursor(this.scrolling ? CursorTypes.RESIZE_NS : CursorTypes.POINTING_HAND);
+        }
     }
 
     @Override
-    public void onRelease(MouseButtonEvent mouseButtonEvent)
+    public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick)
     {
-        AbstractWidget widget = getWidgetAt(mouseButtonEvent);
-        if (widget == null)
+        for (int i = children.size() - 1; i >= 0; i--)
         {
-            return;
+            AbstractWidget w = children.get(i).widget;
+            if (w.mouseClicked(e, doubleClick)) return true;
         }
-
-        widget.mouseReleased(mouseButtonEvent);
+        return false;
     }
 
-    private AbstractWidget getWidgetAt(MouseButtonEvent mEv)
+    @Override
+    public boolean mouseReleased(MouseButtonEvent e)
     {
-        int clipTop = getY() + 1;
-        int clipBottom = getY() + height - 1;
-        int scroll = (int) scrollAmount();
+        this.scrolling = false;
 
-        for (AbstractWidget child: children)
+        for (WidgetEntry entry : children)
         {
-            int childX = child.getX();
-            int childY = child.getY() - scroll;
-            int childW = child.getWidth();
-            int childH = child.getHeight();
+            entry.widget.mouseReleased(e);
+        }
+        return false;
+    }
 
-            // Outside visible scroll area
-            if (childY + childH < clipTop || childY > clipBottom)
-            {
-                continue;
-            }
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput narration)
+    {
+    }
 
-            // check if element inside box
-            if (mEv.x() >= childX && mEv.x() < childX + childW && mEv.y() >= childY && mEv.y() < childY + childH)
-            {
-                return child;
-            }
+    /* ---------------- Builder ---------------- */
+
+    public static Builder builder(int x, int y, int width, int height)
+    {
+        return new Builder(x, y, width, height);
+    }
+
+    public static final class Builder
+    {
+        private final int x;
+        private final int y;
+        private final int width;
+        private final int height;
+        private int padding = 4;
+
+        private Color bgColor = Colors.BLACK.withAlpha(128);
+        private Color outlineColor = Colors.WHITE;
+        private Color scrollbarColor = Colors.CLEAR;
+        private Color scrollerColor = Colors.WHITE;
+
+        private Builder(int x, int y, int width, int height)
+        {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
         }
 
-        return null;
+        public Builder padding(int padding)
+        {
+            this.padding = padding;
+            return this;
+        }
+
+        public Builder bgColor(Color color)
+        {
+            this.bgColor = color;
+            return this;
+        }
+
+        public Builder outlineColor(Color color)
+        {
+            this.outlineColor = color;
+            return this;
+        }
+
+        public Builder scrollbarColor(Color color)
+        {
+            this.scrollbarColor = color;
+            return this;
+        }
+
+        public Builder scrollerColor(Color color)
+        {
+            this.scrollerColor = color;
+            return this;
+        }
+
+        public ScrollBoxWidget build()
+        {
+            return new ScrollBoxWidget(x, y, width, height, padding, bgColor, outlineColor, scrollbarColor, scrollerColor);
+        }
     }
+
+    private static final class WidgetEntry
+    {
+        final AbstractWidget widget;
+        final int contentX;
+        final int contentY;
+
+        WidgetEntry(AbstractWidget widget, int x, int y)
+        {
+            this.widget = widget;
+            this.contentX = x;
+            this.contentY = y;
+        }
+    }
+
 }
