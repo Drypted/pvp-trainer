@@ -153,6 +153,16 @@ public class ButtonWidget extends AbstractWidget
         isToggleButton = toggleButton;
     }
 
+    public boolean isPressed()
+    {
+        return pressed;
+    }
+
+    public void setPressed(boolean pressed)
+    {
+        this.pressed = pressed;
+    }
+
     // BUILDER ------------------------------------------------------------------------------------
 
     public static Builder builder(int x, int y, String text)

@@ -4,14 +4,32 @@ import com.drypted.pvpTrainer.client.config.gui.ButtonWidget;
 import com.drypted.pvpTrainer.client.config.gui.ScrollBoxWidget;
 import com.drypted.pvpTrainer.client.hudOverlay.PVPLabels;
 import com.drypted.pvpTrainer.client.hudOverlay.SharedConstants;
-import com.drypted.pvpTrainer.client.utils.Colors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class ModConfigScreen extends Screen
 {
     private final Screen parent;
+
+    private static final int BUTTONS_COUNT = 4;
+
+    private final List<ButtonWidget> topLeftLabels = new ArrayList<>(BUTTONS_COUNT);
+    private final List<ButtonWidget> topRightLabels = new ArrayList<>(BUTTONS_COUNT);
+    private final List<ButtonWidget> bottomLeftLabels = new ArrayList<>(BUTTONS_COUNT);
+    private final List<ButtonWidget> bottomRightLabels = new ArrayList<>(BUTTONS_COUNT);
+
+    private ScrollBoxWidget topLeftBox;
+    private ScrollBoxWidget topRightBox;
+    private ScrollBoxWidget bottomLeftBox;
+    private ScrollBoxWidget bottomRightBox;
+
+    private final int margin = 6;
+    private final int buttonWidth = 40;
+
 
     public ModConfigScreen(Screen parent)
     {
@@ -22,27 +40,33 @@ class ModConfigScreen extends Screen
     @Override
     protected void init()
     {
-        _addBackButton();
+        init_labels();
+        init_scrollboxes();
+        init_scrollboxes_callback();
+        init_render();
+    }
 
-        int margin = 6;
-        int labelGap = 6;
+    private void init_labels()
+    {
+        final int labelGap = 6;
 
-        // 4 labels for each corner
+        // labels for each corner
         int top_left_cursor = margin;
         int top_right_cursor = margin;
         int bottom_left_cursor = SharedConstants.GetScreenH() - margin;
         int bottom_right_cursor = SharedConstants.GetScreenH() - margin;
-        for (int i = 0; i < 4; i++)
+
+        for (int i = 0; i < BUTTONS_COUNT; i++)
         {
             ButtonWidget top_left_label = ButtonWidget.builder(margin, top_left_cursor, "").build();
             ButtonWidget top_right_label = ButtonWidget.builder(0, top_right_cursor, "").build();
             ButtonWidget bottom_left_label = ButtonWidget.builder(margin, bottom_left_cursor, "").build();
             ButtonWidget bottom_right_label = ButtonWidget.builder(0, bottom_right_cursor, "").build();
 
-            top_left_label.setWidth(40);
-            top_right_label.setWidth(40);
-            bottom_left_label.setWidth(40);
-            bottom_right_label.setWidth(40);
+            top_left_label.setWidth(buttonWidth);
+            top_right_label.setWidth(buttonWidth);
+            bottom_left_label.setWidth(buttonWidth);
+            bottom_right_label.setWidth(buttonWidth);
 
             top_right_label.setX(SharedConstants.GetScreenW() - top_right_label.getWidth() - margin);
             bottom_right_label.setX(SharedConstants.GetScreenW() - top_right_label.getWidth() - margin);
@@ -55,28 +79,94 @@ class ModConfigScreen extends Screen
             bottom_left_cursor -= bottom_left_label.getHeight() + labelGap;
             bottom_right_cursor -= bottom_right_label.getHeight() + labelGap;
 
-            this.addRenderableWidget(top_left_label);
-            this.addRenderableWidget(top_right_label);
-            this.addRenderableWidget(bottom_left_label);
-            this.addRenderableWidget(bottom_right_label);
+            topLeftLabels.addLast(top_left_label);
+            topRightLabels.addLast(top_right_label);
+            bottomLeftLabels.addLast(bottom_left_label);
+            bottomRightLabels.addLast(bottom_right_label);
         }
-
-
-        ScrollBoxWidget box = ScrollBoxWidget.builder(10, 20, 120, 150).bgColor(Colors.BLACK.withAlpha(128)).padding(6).build();
-
-        int scrollBoxChildCursor = 5;
-        for (int i = 1; i <= 10; i++)
-        {
-            ButtonWidget button = ButtonWidget.builder(0, 0, "Button " + i).toggleButton(false).build();
-            box.addChild(button, 5, scrollBoxChildCursor);
-            scrollBoxChildCursor += button.getHeight() + 5;
-        }
-
-        this.addRenderableWidget(box);
     }
 
-    private void _addBackButton()
+    private void init_scrollboxes()
     {
+        final int top_left_cursor = topLeftLabels.getLast().getY() + topLeftLabels.getLast().getHeight();
+        final int top_right_cursor = topRightLabels.getLast().getY() + topRightLabels.getLast().getHeight();
+        final int bottom_left_cursor = bottomLeftLabels.getLast().getY();
+        final int bottom_right_cursor = bottomRightLabels.getLast().getY();
+
+        final int scrollBoxWidth = 100;
+
+        topLeftBox = ScrollBoxWidget.builder(margin + buttonWidth + margin, margin, scrollBoxWidth, top_left_cursor - margin)
+                .build();
+        topRightBox = ScrollBoxWidget.builder(
+                SharedConstants.GetScreenW() - margin - buttonWidth - margin - scrollBoxWidth,
+                margin,
+                scrollBoxWidth,
+                top_right_cursor - margin
+        ).build();
+        bottomLeftBox = ScrollBoxWidget.builder(
+                margin + buttonWidth + margin,
+                bottom_left_cursor,
+                scrollBoxWidth,
+                SharedConstants.GetScreenH() - margin - bottom_left_cursor
+        ).build();
+        bottomRightBox = ScrollBoxWidget.builder(
+                SharedConstants.GetScreenW() - margin - buttonWidth - margin - scrollBoxWidth,
+                bottom_left_cursor,
+                scrollBoxWidth,
+                SharedConstants.GetScreenH() - margin - bottom_right_cursor
+        ).build();
+
+        topLeftBox.visible = false;
+        topRightBox.visible = false;
+        bottomLeftBox.visible = false;
+        bottomRightBox.visible = false;
+    }
+
+    private void init_scrollboxes_callback()
+    {
+        __add_callback(topLeftLabels, topLeftBox);
+        __add_callback(topRightLabels, topRightBox);
+        __add_callback(bottomLeftLabels, bottomLeftBox);
+        __add_callback(bottomRightLabels, bottomRightBox);
+    }
+
+    private void __add_callback(List<ButtonWidget> labels, ScrollBoxWidget box)
+    {
+        for (ButtonWidget buttonWidget : labels)
+        {
+            buttonWidget.setOnClick(mouseButtonEvent -> {
+                boolean anyPressed = false;
+
+                for (ButtonWidget other : labels)
+                {
+                    if (other.isPressed())
+                    {
+                        other.setPressed(false);
+                        anyPressed = true;
+                    }
+                }
+
+                // only press if another was active
+                if (anyPressed) buttonWidget.setPressed(true);
+
+                box.visible = anyPressed;
+            });
+        }
+    }
+
+    private void init_render()
+    {
+        topLeftLabels.forEach(this::addRenderableWidget);
+        topRightLabels.forEach(this::addRenderableWidget);
+        bottomLeftLabels.forEach(this::addRenderableWidget);
+        bottomRightLabels.forEach(this::addRenderableWidget);
+
+        this.addRenderableWidget(topLeftBox);
+        this.addRenderableWidget(topRightBox);
+        this.addRenderableWidget(bottomLeftBox);
+        this.addRenderableWidget(bottomRightBox);
+
+        // back button at last
         final int buttonWidth = 80;
         final int buttonHeight = 20;
         final int x = (this.width - buttonWidth) / 2;
