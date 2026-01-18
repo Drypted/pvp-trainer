@@ -21,6 +21,7 @@ public class ModConfig implements ConfigData
 
     public enum LabelCorner
     {
+        NONE,
         TOP_LEFT,
         TOP_RIGHT,
         BOTTOM_LEFT,
@@ -106,6 +107,19 @@ public class ModConfig implements ConfigData
             }
             return null;
         }
+
+        public static String getLabelName(LabelCorner corner, int index)
+        {
+            LabelConfig cfg = LabelConfig.getLabelConfigAt(corner, index);
+            if (cfg == null)
+            {
+                return LabelType.NONE.getName();
+            }
+            else
+            {
+                return cfg.name;
+            }
+        }
     }
 
     public static class Hotbar
@@ -118,24 +132,25 @@ public class ModConfig implements ConfigData
 
     public static boolean isValidConfig(ModConfig modConfig)
     {
-        // Ensure position indices are unique per corner
-        for (LabelCorner corner : LabelCorner.values())
-        {
-            boolean[] usedIndices = new boolean[ModConfigScreen.LABELS_PER_CORNER];
-            LabelConfig[] labels = {modConfig.moveStateLabelConfig, modConfig.pressedKeyLabelConfig, modConfig.pitchAngleLabelConfig};
-            for (LabelConfig label : labels)
-            {
-                if (label.corner == corner && label.enabled)
-                {
-                    int index = label.positionIndex;
-                    if (index < 0 || index >= usedIndices.length || usedIndices[index])
-                    {
-                        return false; // invalid index or duplicate
-                    }
-                    usedIndices[index] = true;
-                }
-            }
-        }
+        // // Ensure position indices are unique per corner
+        // for (LabelCorner corner : LabelCorner.values())
+        // {
+        //     boolean[] usedIndices = new boolean[ModConfigScreen.LABELS_PER_CORNER];
+        //     LabelConfig[] labels = {modConfig.moveStateLabelConfig, modConfig.pressedKeyLabelConfig, modConfig.pitchAngleLabelConfig};
+        //     for (LabelConfig label : labels)
+        //     {
+        //         if (label.corner == corner && label.enabled)
+        //         {
+        //             int index = label.positionIndex;
+        //             if (index < 0 || index >= usedIndices.length || usedIndices[index])
+        //             {
+        //                 return false; // invalid index or duplicate
+        //             }
+        //             usedIndices[index] = true;
+        //         }
+        //     }
+        // }
+        // TODO: implement
         return true;
     }
 }

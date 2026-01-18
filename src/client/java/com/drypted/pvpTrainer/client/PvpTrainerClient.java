@@ -59,4 +59,10 @@ public class PvpTrainerClient implements ClientModInitializer
                 }
         );
     }
+
+    public static void saveConfig()
+    {
+        AutoConfig.getConfigHolder(ModConfig.class).setConfig(CONFIG);
+        AutoConfig.getConfigHolder(ModConfig.class).save();
+    }
 }

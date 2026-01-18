@@ -121,7 +121,8 @@ public class ButtonWidget extends AbstractWidget
         }
 
         // Scaled text
-        g.drawString(FONT, text, textX, textY, textColor.asInt(), false);
+        // g.drawString(FONT, text, textX, textY, textColor.asInt(), false);
+        g.drawString(FONT, text, textX, textY, this.pressed ? clickColor.asInt() : textColor.asInt(), false);
     }
 
     @Override

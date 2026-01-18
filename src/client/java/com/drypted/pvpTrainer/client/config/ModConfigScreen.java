@@ -1,11 +1,11 @@
 package com.drypted.pvpTrainer.client.config;
 
+import com.drypted.pvpTrainer.client.PvpTrainerClient;
 import com.drypted.pvpTrainer.client.config.gui.ButtonWidget;
 import com.drypted.pvpTrainer.client.config.gui.ScrollBoxWidget;
 import com.drypted.pvpTrainer.client.hudOverlay.PVPLabels;
 import com.drypted.pvpTrainer.client.hudOverlay.SharedConstants;
 import com.drypted.pvpTrainer.client.utils.Colors;
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -18,12 +18,14 @@ import static com.drypted.pvpTrainer.client.PvpTrainerClient.CONFIG;
 class ModConfigScreen extends Screen
 {
     private final Screen parent;
-    private final ModConfig config;
+    private ModConfig config;
 
     public static final int LABELS_PER_CORNER = 4;
     public static final int BUTTON_WIDTH = 80;
     public static final int BUTTON_HEIGHT = 20;
     public static final int SCREEN_MARGIN = 6;
+    public static final int SCROLL_BOX_BUTTON_WIDTH = 80;
+    private static final int SCROLL_BOX_WIDTH = SCROLL_BOX_BUTTON_WIDTH + (SCREEN_MARGIN * 2);
 
     private final List<ScreenLabel> topLeftScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
     private final List<ScreenLabel> topRightScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
@@ -102,22 +104,22 @@ class ModConfigScreen extends Screen
             ScreenLabel bottom_left = new ScreenLabel(ModConfig.LabelCorner.BOTTOM_LEFT, i);
             ScreenLabel bottom_right = new ScreenLabel(ModConfig.LabelCorner.BOTTOM_RIGHT, i);
 
-            String top_left_button_text = __getLabelTextOf(ModConfig.LabelCorner.TOP_LEFT, i);
+            String top_left_button_text = ModConfig.LabelConfig.getLabelName(ModConfig.LabelCorner.TOP_LEFT, i);
             top_left.getButton().setX(SCREEN_MARGIN);
             top_left.getButton().setY(top_left_cursor);
             top_left.getButton().setText(top_left_button_text);
 
-            String top_right_button_text = __getLabelTextOf(ModConfig.LabelCorner.TOP_RIGHT, i);
+            String top_right_button_text = ModConfig.LabelConfig.getLabelName(ModConfig.LabelCorner.TOP_RIGHT, i);
             top_right.getButton().setX(SharedConstants.GetScreenW() - BUTTON_WIDTH - SCREEN_MARGIN);
             top_right.getButton().setY(top_right_cursor);
             top_right.getButton().setText(top_right_button_text);
 
-            String bottom_left_button_text = __getLabelTextOf(ModConfig.LabelCorner.BOTTOM_LEFT, i);
+            String bottom_left_button_text = ModConfig.LabelConfig.getLabelName(ModConfig.LabelCorner.BOTTOM_LEFT, i);
             bottom_left.getButton().setX(SCREEN_MARGIN);
             bottom_left.getButton().setY(bottom_left_cursor - BUTTON_HEIGHT);
             bottom_left.getButton().setText(bottom_left_button_text);
 
-            String bottom_right_button_text = __getLabelTextOf(ModConfig.LabelCorner.BOTTOM_RIGHT, i);
+            String bottom_right_button_text = ModConfig.LabelConfig.getLabelName(ModConfig.LabelCorner.BOTTOM_RIGHT, i);
             bottom_right.getButton().setX(SharedConstants.GetScreenW() - BUTTON_WIDTH - SCREEN_MARGIN);
             bottom_right.getButton().setY(bottom_right_cursor - BUTTON_HEIGHT);
             bottom_right.getButton().setText(bottom_right_button_text);
@@ -134,19 +136,6 @@ class ModConfigScreen extends Screen
         }
     }
 
-    private String __getLabelTextOf(ModConfig.LabelCorner corner, int index)
-    {
-        ModConfig.LabelConfig cfg = ModConfig.LabelConfig.getLabelConfigAt(corner, index);
-        if (cfg == null)
-        {
-            return LabelType.NONE.getName();
-        }
-        else
-        {
-            return cfg.name;
-        }
-    }
-
     private void init_scrollboxes()
     {
         final int top_left_cursor = topLeftScreenLabels.getLast().getButton().getY() + topLeftScreenLabels.getLast()
@@ -158,31 +147,29 @@ class ModConfigScreen extends Screen
         final int bottom_left_cursor = bottomLeftScreenLabels.getLast().getButton().getY();
         final int bottom_right_cursor = bottomRightScreenLabels.getLast().getButton().getY();
 
-        final int scrollBoxWidth = 100;
-
         topLeftBox = ScrollBoxWidget.builder(
                         SCREEN_MARGIN + BUTTON_WIDTH + SCREEN_MARGIN,
                         SCREEN_MARGIN,
-                        scrollBoxWidth,
+                        SCROLL_BOX_WIDTH,
                         top_left_cursor - SCREEN_MARGIN
                 )
                 .build();
         topRightBox = ScrollBoxWidget.builder(
-                SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - scrollBoxWidth,
+                SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - SCROLL_BOX_WIDTH,
                 SCREEN_MARGIN,
-                scrollBoxWidth,
+                SCROLL_BOX_WIDTH,
                 top_right_cursor - SCREEN_MARGIN
         ).build();
         bottomLeftBox = ScrollBoxWidget.builder(
                 SCREEN_MARGIN + BUTTON_WIDTH + SCREEN_MARGIN,
                 bottom_left_cursor,
-                scrollBoxWidth,
+                SCROLL_BOX_WIDTH,
                 SharedConstants.GetScreenH() - SCREEN_MARGIN - bottom_left_cursor
         ).build();
         bottomRightBox = ScrollBoxWidget.builder(
-                SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - scrollBoxWidth,
+                SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - SCROLL_BOX_WIDTH,
                 bottom_right_cursor,
-                scrollBoxWidth,
+                SCROLL_BOX_WIDTH,
                 SharedConstants.GetScreenH() - SCREEN_MARGIN - bottom_right_cursor
         ).build();
 
@@ -196,9 +183,9 @@ class ModConfigScreen extends Screen
             for (LabelType labelType : LabelType.values())
             {
                 box.addChildRow(ButtonWidget.builder(0, 0, labelType.getName())
-                                        .width(80)
+                                        .width(SCROLL_BOX_BUTTON_WIDTH)
                                         .centeredText(true)
-                                        .onClick(((mEv, pressed) -> labelsOnClick(labelType)))
+                                        .onClick((mEv, pressed) -> onClickLabelInBox(labelType))
                                         .build());
             }
             // hidden by default
@@ -213,26 +200,6 @@ class ModConfigScreen extends Screen
             bottomLeftScreenLabels.get(i).setBox(bottomLeftBox);
             bottomRightScreenLabels.get(i).setBox(bottomRightBox);
         }
-    }
-
-    private void labelsOnClick(LabelType pressedLabel)
-    {
-        switch (pressedLabel)
-        {
-            case MOVE_STATE:
-                config.moveStateLabelConfig.corner = selectedLabel.getCorner();
-                config.moveStateLabelConfig.positionIndex = selectedLabel.getIndex();
-                break;
-            case PITCH_ANGLE:
-                config.pitchAngleLabelConfig.corner = selectedLabel.getCorner();
-                config.pitchAngleLabelConfig.positionIndex = selectedLabel.getIndex();
-                break;
-            case PRESSED_KEY:
-                config.pressedKeyLabelConfig.corner = selectedLabel.getCorner();
-                config.pressedKeyLabelConfig.positionIndex = selectedLabel.getIndex();
-                break;
-        }
-        ModConfigScreen.this.updateScreen();
     }
 
     private void init_scrollboxes_callback()
@@ -302,24 +269,7 @@ class ModConfigScreen extends Screen
                 .build();
         doneButton.setWidth(buttonWidth);
         doneButton.setHeight(buttonHeight);
-        doneButton.setOnClick((mouseButtonEvent, pressed) -> {
-            PVPLabels.refreshHotbarKeys();
-            if (ModConfig.isValidConfig(config))
-            {
-                CONFIG = this.config;
-                AutoConfig.getConfigHolder(ModConfig.class).setConfig(CONFIG);
-                AutoConfig.getConfigHolder(ModConfig.class).save();
-                onClose();
-            }
-            else
-            {
-                doneButton.setText("Invalid Config!");
-                doneButton.setOutlineColor(Colors.RED);
-                doneButton.setBackgroundColor(Colors.RED.withAlpha(64));
-                doneButton.setHoverColor(Colors.RED.withAlpha(128));
-            }
-
-        });
+        doneButton.setOnClick((mouseButtonEvent, pressed) -> onClickDoneButton(doneButton));
 
         // Cancel button
         ButtonWidget cancelButton = ButtonWidget.builder(xPos, topPadding + 2 * (buttonHeight), "Cancel")
@@ -331,16 +281,11 @@ class ModConfigScreen extends Screen
                 .build();
         cancelButton.setWidth(buttonWidth);
         cancelButton.setHeight(buttonHeight);
-        cancelButton.setOnClick((mouseButtonEvent, pressed) -> {
-            // reload config from disk
-            CONFIG = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
-            PVPLabels.refreshHotbarKeys();
-            onClose();
-        });
+        cancelButton.setOnClick((mouseButtonEvent, pressed) -> onClickCancelButton());
 
         this.addRenderableWidget(creativeConfigButton);
         this.addRenderableWidget(doneButton);
-        this.addRenderableWidget(cancelButton);
+        addRenderableWidget(cancelButton);
     }
 
     @Override
@@ -369,20 +314,23 @@ class ModConfigScreen extends Screen
         ModConfig.LabelCorner moveStateCorner = label.corner;
         int moveStateIndex = label.positionIndex;
 
+        if (moveStateCorner == ModConfig.LabelCorner.NONE || moveStateIndex < 0 || moveStateIndex >= LABELS_PER_CORNER)
+        {
+            PvpTrainerClient.LOGGER.warn(
+                    "Invalid label config for type {}: corner={}, index={}",
+                    type,
+                    moveStateCorner,
+                    moveStateIndex
+            );
+            return;
+        }
+
         switch (moveStateCorner)
         {
-            case TOP_LEFT:
-                topLeftScreenLabels.get(moveStateIndex).setLabelType(type);
-                break;
-            case TOP_RIGHT:
-                topRightScreenLabels.get(moveStateIndex).setLabelType(type);
-                break;
-            case BOTTOM_LEFT:
-                bottomLeftScreenLabels.get(moveStateIndex).setLabelType(type);
-                break;
-            case BOTTOM_RIGHT:
-                bottomRightScreenLabels.get(moveStateIndex).setLabelType(type);
-                break;
+            case TOP_LEFT -> topLeftScreenLabels.get(moveStateIndex).setLabelType(type);
+            case TOP_RIGHT -> topRightScreenLabels.get(moveStateIndex).setLabelType(type);
+            case BOTTOM_LEFT -> bottomLeftScreenLabels.get(moveStateIndex).setLabelType(type);
+            case BOTTOM_RIGHT -> bottomRightScreenLabels.get(moveStateIndex).setLabelType(type);
         }
     }
 
@@ -394,4 +342,113 @@ class ModConfigScreen extends Screen
         }
     }
 
+    /// Removes the given label type from all screen labels
+    private void clearLabelType(LabelType type)
+    {
+        _clearLabelTypeFromList(topLeftScreenLabels, type);
+        _clearLabelTypeFromList(topRightScreenLabels, type);
+        _clearLabelTypeFromList(bottomLeftScreenLabels, type);
+        _clearLabelTypeFromList(bottomRightScreenLabels, type);
+
+        switch (type)
+        {
+            case MOVE_STATE ->
+            {
+                config.moveStateLabelConfig.corner = ModConfig.LabelCorner.NONE;
+                config.moveStateLabelConfig.positionIndex = -1;
+            }
+            case PITCH_ANGLE ->
+            {
+                config.pitchAngleLabelConfig.corner = ModConfig.LabelCorner.NONE;
+                config.pitchAngleLabelConfig.positionIndex = -1;
+            }
+            case PRESSED_KEY ->
+            {
+                config.pressedKeyLabelConfig.corner = ModConfig.LabelCorner.NONE;
+                config.pressedKeyLabelConfig.positionIndex = -1;
+            }
+        }
+    }
+
+    private void _clearLabelTypeFromList(List<ScreenLabel> labels, LabelType type)
+    {
+        for (ScreenLabel label : labels)
+        {
+            if (label.getLabelType() == type)
+            {
+                label.setLabelType(LabelType.NONE);
+            }
+        }
+    }
+
+    // MARK - Button Handlers ---------------------------------------------------------------------
+
+    /// On click handler for Done button
+    private void onClickDoneButton(ButtonWidget doneButton)
+    {
+        PVPLabels.refreshHotbarKeys();
+        if (ModConfig.isValidConfig(config))
+        {
+            CONFIG = config;
+            PvpTrainerClient.saveConfig();
+            onClose();
+        }
+        else
+        {
+            doneButton.setText("Invalid Config!");
+            doneButton.setOutlineColor(Colors.RED);
+            doneButton.setBackgroundColor(Colors.RED.withAlpha(64));
+            doneButton.setHoverColor(Colors.RED.withAlpha(128));
+        }
+    }
+
+    /// On click handler for Cancel button
+    private void onClickCancelButton()
+    {
+        config = CONFIG;
+        PVPLabels.refreshHotbarKeys();
+        onClose();
+    }
+
+    /// On click handler for label selection buttons; Move State, Pitch Angle, Pressed Key
+    private void onClickLabelInBox(LabelType pressedLabel)
+    {
+        // clear previous type
+        LabelType previousType = selectedLabel.getLabelType();
+        if (previousType != LabelType.NONE)
+        {
+            clearLabelType(previousType);
+        }
+
+        clearLabelType(pressedLabel);
+        PvpTrainerClient.LOGGER.info("Selected Label before config update: {}", selectedLabel.getButton().getText());
+
+        switch (pressedLabel)
+        {
+            case MOVE_STATE ->
+            {
+                config.moveStateLabelConfig.corner = selectedLabel.getCorner();
+                config.moveStateLabelConfig.positionIndex = selectedLabel.getIndex();
+            }
+            case PITCH_ANGLE ->
+            {
+                config.pitchAngleLabelConfig.corner = selectedLabel.getCorner();
+                config.pitchAngleLabelConfig.positionIndex = selectedLabel.getIndex();
+            }
+            case PRESSED_KEY ->
+            {
+                config.pressedKeyLabelConfig.corner = selectedLabel.getCorner();
+                config.pressedKeyLabelConfig.positionIndex = selectedLabel.getIndex();
+            }
+        }
+
+        // update selected label
+        selectedLabel.setLabelType(pressedLabel);
+        selectedLabel.getButton().setPressed(false);
+        selectedLabel.getBox().visible = false;
+
+        this.updateScreen();
+
+        PvpTrainerClient.LOGGER.info("Selected Label after config update: {}", selectedLabel.getButton().getText());
+    }
 }
