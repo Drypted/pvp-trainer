@@ -5,42 +5,43 @@ import com.drypted.pvpTrainer.client.config.gui.ScrollBoxWidget;
 import com.drypted.pvpTrainer.client.hudOverlay.PVPLabels;
 import com.drypted.pvpTrainer.client.hudOverlay.SharedConstants;
 import com.drypted.pvpTrainer.client.utils.Colors;
+import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.drypted.pvpTrainer.client.PvpTrainerClient.CONFIG;
+
 class ModConfigScreen extends Screen
 {
     private final Screen parent;
+    private final ModConfig config;
 
-    private static final int BUTTONS_COUNT = 4;
-    public static final int BUTTON_WIDTH = 40;
+    public static final int LABELS_PER_CORNER = 4;
+    public static final int BUTTON_WIDTH = 80;
     public static final int BUTTON_HEIGHT = 20;
-    private final int margin = 6;
+    public static final int SCREEN_MARGIN = 6;
 
-    private final List<ScreenLabel> topLeftScreenLabels = new ArrayList<>(BUTTONS_COUNT);
-    private final List<ScreenLabel> topRightScreenLabels = new ArrayList<>(BUTTONS_COUNT);
-    private final List<ScreenLabel> bottomLeftScreenLabels = new ArrayList<>(BUTTONS_COUNT);
-    private final List<ScreenLabel> bottomRightScreenLabels = new ArrayList<>(BUTTONS_COUNT);
+    private final List<ScreenLabel> topLeftScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
+    private final List<ScreenLabel> topRightScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
+    private final List<ScreenLabel> bottomLeftScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
+    private final List<ScreenLabel> bottomRightScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
 
     private ScrollBoxWidget topLeftBox;
     private ScrollBoxWidget topRightBox;
     private ScrollBoxWidget bottomLeftBox;
     private ScrollBoxWidget bottomRightBox;
 
-    private int top_left_end;
-    private int top_right_end;
-    private int bottom_left_start;
-    private int bottom_right_start;
+    private ScreenLabel selectedLabel;
 
     public ModConfigScreen(Screen parent)
     {
         super(Component.translatable("com.drypted.pvptrainer.config.title"));
         this.parent = parent;
+        this.config = CONFIG;
     }
 
     @Override
@@ -62,6 +63,15 @@ class ModConfigScreen extends Screen
         bottomLeftScreenLabels.clear();
         bottomRightScreenLabels.clear();
 
+        // pre-fill with nulls
+        for (int i = 0; i < LABELS_PER_CORNER; i++)
+        {
+            topLeftScreenLabels.add(null);
+            topRightScreenLabels.add(null);
+            bottomLeftScreenLabels.add(null);
+            bottomRightScreenLabels.add(null);
+        }
+
         // clear renderables already added to the screen
         this.clearWidgets();
 
@@ -78,35 +88,35 @@ class ModConfigScreen extends Screen
         final int labelGap = 6;
 
         // labels for each corner
-        int top_left_cursor = margin;
-        int top_right_cursor = margin;
-        int bottom_left_cursor = SharedConstants.GetScreenH() - margin;
-        int bottom_right_cursor = SharedConstants.GetScreenH() - margin;
+        int top_left_cursor = SCREEN_MARGIN;
+        int top_right_cursor = SCREEN_MARGIN;
+        int bottom_left_cursor = SharedConstants.GetScreenH() - SCREEN_MARGIN;
+        int bottom_right_cursor = SharedConstants.GetScreenH() - SCREEN_MARGIN;
 
-        for (int i = 0; i < BUTTONS_COUNT; i++)
+        for (int i = 0; i < LABELS_PER_CORNER; i++)
         {
             ScreenLabel top_left = new ScreenLabel(LabelType.MOVE_STATE);
             ScreenLabel top_right = new ScreenLabel(LabelType.MOVE_STATE);
             ScreenLabel bottom_left = new ScreenLabel(LabelType.MOVE_STATE);
             ScreenLabel bottom_right = new ScreenLabel(LabelType.MOVE_STATE);
 
-            String top_left_button_text = getLabelTextIfAvailable(topLeftScreenLabels.get(i));
-            top_left.getButton().setX(margin);
+            String top_left_button_text = __getLabelTextOf(ModConfig.LabelCorner.TOP_LEFT, i);
+            top_left.getButton().setX(SCREEN_MARGIN);
             top_left.getButton().setY(top_left_cursor);
             top_left.getButton().setText(top_left_button_text);
 
-            String top_right_button_text = getLabelTextIfAvailable(topRightScreenLabels.get(i));
-            top_right.getButton().setX(SharedConstants.GetScreenW() - BUTTON_WIDTH - margin);
+            String top_right_button_text = __getLabelTextOf(ModConfig.LabelCorner.TOP_RIGHT, i);
+            top_right.getButton().setX(SharedConstants.GetScreenW() - BUTTON_WIDTH - SCREEN_MARGIN);
             top_right.getButton().setY(top_right_cursor);
             top_right.getButton().setText(top_right_button_text);
 
-            String bottom_left_button_text = getLabelTextIfAvailable(bottomLeftScreenLabels.get(i));
-            bottom_left.getButton().setX(margin);
+            String bottom_left_button_text = __getLabelTextOf(ModConfig.LabelCorner.BOTTOM_LEFT, i);
+            bottom_left.getButton().setX(SCREEN_MARGIN);
             bottom_left.getButton().setY(bottom_left_cursor - BUTTON_HEIGHT);
             bottom_left.getButton().setText(bottom_left_button_text);
 
-            String bottom_right_button_text = getLabelTextIfAvailable(bottomRightScreenLabels.get(i));
-            bottom_right.getButton().setX(SharedConstants.GetScreenW() - BUTTON_WIDTH - margin);
+            String bottom_right_button_text = __getLabelTextOf(ModConfig.LabelCorner.BOTTOM_RIGHT, i);
+            bottom_right.getButton().setX(SharedConstants.GetScreenW() - BUTTON_WIDTH - SCREEN_MARGIN);
             bottom_right.getButton().setY(bottom_right_cursor - BUTTON_HEIGHT);
             bottom_right.getButton().setText(bottom_right_button_text);
 
@@ -120,54 +130,58 @@ class ModConfigScreen extends Screen
             bottomLeftScreenLabels.set(i, bottom_left);
             bottomRightScreenLabels.set(i, bottom_right);
         }
-
-        this.top_left_end = top_left_cursor;
-        this.top_right_end = top_right_cursor;
-        this.bottom_left_start = bottom_left_cursor;
-        this.bottom_right_start = bottom_right_cursor;
     }
 
-    private String getLabelTextIfAvailable(@Nullable ScreenLabel label)
+    private String __getLabelTextOf(ModConfig.LabelCorner corner, int index)
     {
-        if (label == null)
+        ModConfig.LabelConfig cfg = ModConfig.LabelConfig.getLabelConfigAt(corner, index);
+        if (cfg == null)
         {
-            return LabelType.MOVE_STATE.getName();
+            return "None";
         }
-        return label.label.getName();
+        else
+        {
+            return cfg.name;
+        }
     }
 
     private void init_scrollboxes()
     {
-        // final int top_left_cursor = topLeftScreenLabels.getLast().getButton().getY() + topLeftScreenLabels.getLast()
-        //         .getButton()
-        //         .getHeight();
-        // final int top_right_cursor = topRightScreenLabels.getLast().getButton().getY() + topRightScreenLabels.getLast()
-        //         .getButton()
-        //         .getHeight();
-        // final int bottom_left_cursor = bottomLeftScreenLabels.getLast().getButton().getY();
-        // final int bottom_right_cursor = bottomRightScreenLabels.getLast().getButton().getY();
+        final int top_left_cursor = topLeftScreenLabels.getLast().getButton().getY() + topLeftScreenLabels.getLast()
+                .getButton()
+                .getHeight();
+        final int top_right_cursor = topRightScreenLabels.getLast().getButton().getY() + topRightScreenLabels.getLast()
+                .getButton()
+                .getHeight();
+        final int bottom_left_cursor = bottomLeftScreenLabels.getLast().getButton().getY();
+        final int bottom_right_cursor = bottomRightScreenLabels.getLast().getButton().getY();
 
         final int scrollBoxWidth = 100;
 
-        topLeftBox = ScrollBoxWidget.builder(margin + BUTTON_WIDTH + margin, margin, scrollBoxWidth, top_left_end - margin)
+        topLeftBox = ScrollBoxWidget.builder(
+                        SCREEN_MARGIN + BUTTON_WIDTH + SCREEN_MARGIN,
+                        SCREEN_MARGIN,
+                        scrollBoxWidth,
+                        top_left_cursor - SCREEN_MARGIN
+                )
                 .build();
         topRightBox = ScrollBoxWidget.builder(
-                SharedConstants.GetScreenW() - margin - BUTTON_WIDTH - margin - scrollBoxWidth,
-                margin,
+                SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - scrollBoxWidth,
+                SCREEN_MARGIN,
                 scrollBoxWidth,
-                top_right_end - margin
+                top_right_cursor - SCREEN_MARGIN
         ).build();
         bottomLeftBox = ScrollBoxWidget.builder(
-                margin + BUTTON_WIDTH + margin,
-                bottom_left_start,
+                SCREEN_MARGIN + BUTTON_WIDTH + SCREEN_MARGIN,
+                bottom_left_cursor,
                 scrollBoxWidth,
-                SharedConstants.GetScreenH() - margin - bottom_left_start
+                SharedConstants.GetScreenH() - SCREEN_MARGIN - bottom_left_cursor
         ).build();
         bottomRightBox = ScrollBoxWidget.builder(
-                SharedConstants.GetScreenW() - margin - BUTTON_WIDTH - margin - scrollBoxWidth,
-                bottom_left_start,
+                SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - scrollBoxWidth,
+                bottom_right_cursor,
                 scrollBoxWidth,
-                SharedConstants.GetScreenH() - margin - bottom_right_start
+                SharedConstants.GetScreenH() - SCREEN_MARGIN - bottom_right_cursor
         ).build();
 
         ScrollBoxWidget[] scrollBoxWidgets = new ScrollBoxWidget[]{topLeftBox, topRightBox, bottomLeftBox, bottomRightBox};
@@ -184,46 +198,47 @@ class ModConfigScreen extends Screen
             // hidden by default
             box.visible = false;
         }
+
+        // assign boxes
+        for (int i = 0; i < LABELS_PER_CORNER; i++)
+        {
+            topLeftScreenLabels.get(i).setBox(topLeftBox);
+            topRightScreenLabels.get(i).setBox(topRightBox);
+            bottomLeftScreenLabels.get(i).setBox(bottomLeftBox);
+            bottomRightScreenLabels.get(i).setBox(bottomRightBox);
+        }
     }
 
     private void init_scrollboxes_callback()
     {
-        __add_callback(topLeftScreenLabels, topLeftBox);
-        __add_callback(topRightScreenLabels, topRightBox);
-        __add_callback(bottomLeftScreenLabels, bottomLeftBox);
-        __add_callback(bottomRightScreenLabels, bottomRightBox);
-    }
+        List<ScreenLabel> all_labels = new ArrayList<>();
+        all_labels.addAll(topLeftScreenLabels);
+        all_labels.addAll(topRightScreenLabels);
+        all_labels.addAll(bottomLeftScreenLabels);
+        all_labels.addAll(bottomRightScreenLabels);
 
-    private void __add_callback(List<ScreenLabel> labels, ScrollBoxWidget box)
-    {
-        for (ScreenLabel label : labels)
+        for (ScreenLabel label : all_labels)
         {
-            label.getButton().setOnClick(mouseButtonEvent -> {
-                boolean anyPressed = false;
+            label.getButton().setOnClick((mEv, pressed) -> {
+                selectedLabel = label;
 
-                for (ScreenLabel other : labels)
+                for (ScreenLabel otherLabel : all_labels)
                 {
-                    if (other.getButton().isPressed())
+                    if (otherLabel != selectedLabel)
                     {
-                        other.getButton().setPressed(false);
-                        anyPressed = true;
+                        otherLabel.getButton().setPressed(false);
+                        otherLabel.getBox().visible = false;
                     }
                 }
 
-                // only press if another was active
-                if (anyPressed) label.getButton().setPressed(true);
-
-                box.visible = anyPressed;
+                // show current box
+                selectedLabel.getBox().visible = true;
             });
         }
     }
 
     private void init_render()
     {
-        // topLeftScreenLabels.forEach(this::addRenderableWidget);
-        // topRightScreenLabels.forEach(this::addRenderableWidget);
-        // bottomLeftScreenLabels.forEach(this::addRenderableWidget);
-        // bottomRightScreenLabels.forEach(this::addRenderableWidget);
         topLeftScreenLabels.forEach(label -> this.addRenderableWidget(label.getButton()));
         topRightScreenLabels.forEach(label -> this.addRenderableWidget(label.getButton()));
         bottomLeftScreenLabels.forEach(label -> this.addRenderableWidget(label.getButton()));
@@ -237,7 +252,6 @@ class ModConfigScreen extends Screen
         // add three buttons: creative config, done, cancel
         int buttonHeight = 20;
         int buttonWidth = 80;
-        int spacing = 10;
         int xPos = (SharedConstants.GetScreenW() - buttonWidth) / 2;
         final int topPadding = 10;
 
@@ -249,11 +263,11 @@ class ModConfigScreen extends Screen
 
         creativeConfigButton.setWidth(buttonWidth);
         creativeConfigButton.setHeight(buttonHeight);
-        creativeConfigButton.setOnClick(mouseButtonEvent -> {
+        creativeConfigButton.setOnClick((mouseButtonEvent, pressed) -> {
         });
 
         // Done button
-        ButtonWidget doneButton = ButtonWidget.builder(xPos, topPadding + buttonHeight + spacing, "Done")
+        ButtonWidget doneButton = ButtonWidget.builder(xPos, topPadding + buttonHeight, "Done")
                 .bgColor(Colors.GREEN.withAlpha(64))
                 .hoverColor(Colors.GREEN.withAlpha(128))
                 .clickColor(Colors.WHITE)
@@ -262,10 +276,28 @@ class ModConfigScreen extends Screen
                 .build();
         doneButton.setWidth(buttonWidth);
         doneButton.setHeight(buttonHeight);
-        doneButton.setOnClick(mouseButtonEvent -> onClose());
+        doneButton.setOnClick((mouseButtonEvent, pressed) -> {
+            PVPLabels.refreshHotbarKeys();
+            // if (ModConfig.isValidConfig(config))
+            if (true)
+            {
+                CONFIG = this.config;
+                AutoConfig.getConfigHolder(ModConfig.class).setConfig(CONFIG);
+                AutoConfig.getConfigHolder(ModConfig.class).save();
+                onClose();
+            }
+            else
+            {
+                doneButton.setText("Invalid Config!");
+                doneButton.setOutlineColor(Colors.RED);
+                doneButton.setBackgroundColor(Colors.RED.withAlpha(64));
+                doneButton.setHoverColor(Colors.RED.withAlpha(128));
+            }
+
+        });
 
         // Cancel button
-        ButtonWidget cancelButton = ButtonWidget.builder(xPos, topPadding + 2 * (buttonHeight + spacing), "Cancel")
+        ButtonWidget cancelButton = ButtonWidget.builder(xPos, topPadding + 2 * (buttonHeight), "Cancel")
                 .bgColor(Colors.RED.withAlpha(64))
                 .hoverColor(Colors.RED.withAlpha(72))
                 .clickColor(Colors.WHITE)
@@ -274,7 +306,12 @@ class ModConfigScreen extends Screen
                 .build();
         cancelButton.setWidth(buttonWidth);
         cancelButton.setHeight(buttonHeight);
-        cancelButton.setOnClick(mouseButtonEvent -> onClose());
+        cancelButton.setOnClick((mouseButtonEvent, pressed) -> {
+            // reload config from disk
+            CONFIG = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
+            PVPLabels.refreshHotbarKeys();
+            onClose();
+        });
 
         this.addRenderableWidget(creativeConfigButton);
         this.addRenderableWidget(doneButton);
@@ -286,61 +323,5 @@ class ModConfigScreen extends Screen
     {
         PVPLabels.refreshHotbarKeys();
         Minecraft.getInstance().setScreen(parent);
-    }
-
-    private enum LabelType
-    {
-        MOVE_STATE("Move State"),
-        PITCH_ANGLE("Pitch Angle"),
-        KEY_PRESS("Key Press");
-
-        private final String name;
-
-        LabelType(String name)
-        {
-            this.name = name;
-        }
-
-        public String getName()
-        {
-            return name;
-        }
-    }
-
-    private static final class ScreenLabel
-    {
-        private LabelType label;
-
-        private final ButtonWidget button = ButtonWidget.builder(0, 0, "")
-                .width(BUTTON_WIDTH)
-                .centeredText(true)
-                .toggleButton(true)
-                .build();
-
-        public ScreenLabel(LabelType label)
-        {
-            this.label = label;
-        }
-
-        public ButtonWidget getButton()
-        {
-            return button;
-        }
-
-        public LabelType getLabelType()
-        {
-            return label;
-        }
-
-        public void setLabelType(LabelType label)
-        {
-            this.label = label;
-        }
-
-        public void setButtonText(String text)
-        {
-            this.button.setText(text);
-        }
-
     }
 }
