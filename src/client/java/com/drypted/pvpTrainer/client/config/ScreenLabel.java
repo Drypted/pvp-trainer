@@ -5,7 +5,7 @@ import com.drypted.pvpTrainer.client.config.gui.ScrollBoxWidget;
 
 public class ScreenLabel
 {
-    private LabelType label;
+    private LabelType label = LabelType.NONE;
 
     private ScrollBoxWidget box;
     private final ButtonWidget button = ButtonWidget.builder(0, 0, "")
@@ -14,10 +14,13 @@ public class ScreenLabel
             .centeredText(true)
             .toggleButton(true)
             .build();
+    private final ModConfig.LabelCorner corner;
+    private final int index;
 
-    public ScreenLabel(LabelType label)
+    public ScreenLabel(ModConfig.LabelCorner corner, int index)
     {
-        this.label = label;
+        this.corner = corner;
+        this.index = index;
     }
 
     public ButtonWidget getButton()
@@ -35,9 +38,9 @@ public class ScreenLabel
         this.label = label;
     }
 
-    public void setButtonText(String text)
+    public ScrollBoxWidget getBox()
     {
-        this.button.setText(text);
+        return box;
     }
 
     public void setBox(ScrollBoxWidget box)
@@ -45,8 +48,13 @@ public class ScreenLabel
         this.box = box;
     }
 
-    public ScrollBoxWidget getBox()
+    public ModConfig.LabelCorner getCorner()
     {
-        return box;
+        return corner;
+    }
+
+    public int getIndex()
+    {
+        return index;
     }
 }

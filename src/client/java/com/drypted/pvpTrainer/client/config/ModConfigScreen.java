@@ -53,6 +53,8 @@ class ModConfigScreen extends Screen
         init_scrollboxes();
         init_scrollboxes_callback();
         init_render();
+
+        updateScreen();
     }
 
     private void clearState()
@@ -95,10 +97,10 @@ class ModConfigScreen extends Screen
 
         for (int i = 0; i < LABELS_PER_CORNER; i++)
         {
-            ScreenLabel top_left = new ScreenLabel(LabelType.MOVE_STATE);
-            ScreenLabel top_right = new ScreenLabel(LabelType.MOVE_STATE);
-            ScreenLabel bottom_left = new ScreenLabel(LabelType.MOVE_STATE);
-            ScreenLabel bottom_right = new ScreenLabel(LabelType.MOVE_STATE);
+            ScreenLabel top_left = new ScreenLabel(ModConfig.LabelCorner.TOP_LEFT, i);
+            ScreenLabel top_right = new ScreenLabel(ModConfig.LabelCorner.TOP_RIGHT, i);
+            ScreenLabel bottom_left = new ScreenLabel(ModConfig.LabelCorner.BOTTOM_LEFT, i);
+            ScreenLabel bottom_right = new ScreenLabel(ModConfig.LabelCorner.BOTTOM_RIGHT, i);
 
             String top_left_button_text = __getLabelTextOf(ModConfig.LabelCorner.TOP_LEFT, i);
             top_left.getButton().setX(SCREEN_MARGIN);
@@ -137,7 +139,7 @@ class ModConfigScreen extends Screen
         ModConfig.LabelConfig cfg = ModConfig.LabelConfig.getLabelConfigAt(corner, index);
         if (cfg == null)
         {
-            return "None";
+            return LabelType.NONE.getName();
         }
         else
         {
@@ -193,7 +195,11 @@ class ModConfigScreen extends Screen
             // options
             for (LabelType labelType : LabelType.values())
             {
-                box.addChildRow(ButtonWidget.builder(0, 0, labelType.getName()).width(80).centeredText(true).build());
+                box.addChildRow(ButtonWidget.builder(0, 0, labelType.getName())
+                                        .width(80)
+                                        .centeredText(true)
+                                        .onClick(((mEv, pressed) -> labelsOnClick(labelType)))
+                                        .build());
             }
             // hidden by default
             box.visible = false;
@@ -207,6 +213,26 @@ class ModConfigScreen extends Screen
             bottomLeftScreenLabels.get(i).setBox(bottomLeftBox);
             bottomRightScreenLabels.get(i).setBox(bottomRightBox);
         }
+    }
+
+    private void labelsOnClick(LabelType pressedLabel)
+    {
+        switch (pressedLabel)
+        {
+            case MOVE_STATE:
+                config.moveStateLabelConfig.corner = selectedLabel.getCorner();
+                config.moveStateLabelConfig.positionIndex = selectedLabel.getIndex();
+                break;
+            case PITCH_ANGLE:
+                config.pitchAngleLabelConfig.corner = selectedLabel.getCorner();
+                config.pitchAngleLabelConfig.positionIndex = selectedLabel.getIndex();
+                break;
+            case PRESSED_KEY:
+                config.pressedKeyLabelConfig.corner = selectedLabel.getCorner();
+                config.pressedKeyLabelConfig.positionIndex = selectedLabel.getIndex();
+                break;
+        }
+        ModConfigScreen.this.updateScreen();
     }
 
     private void init_scrollboxes_callback()
@@ -232,7 +258,7 @@ class ModConfigScreen extends Screen
                 }
 
                 // show current box
-                selectedLabel.getBox().visible = true;
+                selectedLabel.getBox().visible = pressed;
             });
         }
     }
@@ -278,8 +304,7 @@ class ModConfigScreen extends Screen
         doneButton.setHeight(buttonHeight);
         doneButton.setOnClick((mouseButtonEvent, pressed) -> {
             PVPLabels.refreshHotbarKeys();
-            // if (ModConfig.isValidConfig(config))
-            if (true)
+            if (ModConfig.isValidConfig(config))
             {
                 CONFIG = this.config;
                 AutoConfig.getConfigHolder(ModConfig.class).setConfig(CONFIG);
@@ -324,4 +349,49 @@ class ModConfigScreen extends Screen
         PVPLabels.refreshHotbarKeys();
         Minecraft.getInstance().setScreen(parent);
     }
+
+    private void updateScreen()
+    {
+        // update pressedLabel on labels from config
+        _updateTypeFromConfig(config.moveStateLabelConfig, LabelType.MOVE_STATE);
+        _updateTypeFromConfig(config.pitchAngleLabelConfig, LabelType.PITCH_ANGLE);
+        _updateTypeFromConfig(config.pressedKeyLabelConfig, LabelType.PRESSED_KEY);
+
+        // update button text from label types
+        _updateTextFromTypes(topLeftScreenLabels);
+        _updateTextFromTypes(topRightScreenLabels);
+        _updateTextFromTypes(bottomLeftScreenLabels);
+        _updateTextFromTypes(bottomRightScreenLabels);
+    }
+
+    private void _updateTypeFromConfig(ModConfig.LabelConfig label, LabelType type)
+    {
+        ModConfig.LabelCorner moveStateCorner = label.corner;
+        int moveStateIndex = label.positionIndex;
+
+        switch (moveStateCorner)
+        {
+            case TOP_LEFT:
+                topLeftScreenLabels.get(moveStateIndex).setLabelType(type);
+                break;
+            case TOP_RIGHT:
+                topRightScreenLabels.get(moveStateIndex).setLabelType(type);
+                break;
+            case BOTTOM_LEFT:
+                bottomLeftScreenLabels.get(moveStateIndex).setLabelType(type);
+                break;
+            case BOTTOM_RIGHT:
+                bottomRightScreenLabels.get(moveStateIndex).setLabelType(type);
+                break;
+        }
+    }
+
+    private void _updateTextFromTypes(List<ScreenLabel> labels)
+    {
+        for (final ScreenLabel label : labels)
+        {
+            label.getButton().setText(label.getLabelType().getName());
+        }
+    }
+
 }
