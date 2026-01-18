@@ -19,7 +19,7 @@ import static com.drypted.pvpTrainer.client.hudOverlay.SharedConstants.*;
 public final class PVPLabels
 {
     // cache (for performance)
-    private static final EnumMap<ModConfig.LabelPosition, Integer> labelsStackOffset = new EnumMap<>(ModConfig.LabelPosition.class);
+    private static final EnumMap<ModConfig.LabelCorner, Integer> labelsStackOffset = new EnumMap<>(ModConfig.LabelCorner.class);
     // hotbar keybinds
     private static final String[] hotbarKeybinds = new String[9];
     private static String lastPressedKey;
@@ -140,7 +140,7 @@ public final class PVPLabels
 
     private static void drawLabel(GuiGraphics context, String text, ModConfig.LabelConfig labelConfig)
     {
-        int offset = labelsStackOffset.getOrDefault(labelConfig.position, 0);
+        int offset = labelsStackOffset.getOrDefault(labelConfig.corner, 0);
 
         int margin = labelConfig.margin;
         LocalPlayer player = Minecraft.getInstance().player;
@@ -153,7 +153,7 @@ public final class PVPLabels
         int xPos;
         int yPos;
 
-        switch (labelConfig.position)
+        switch (labelConfig.corner)
         {
             case TOP_LEFT ->
             {
@@ -197,7 +197,7 @@ public final class PVPLabels
 
         PVPRendererUtils.drawTextAbsolute(context, text, xPos, yPos, backgroundColor, textColor, labelConfig.padding, 1.0f);
 
-        labelsStackOffset.put(labelConfig.position, offset + boxHeight + labelConfig.stackGap);
+        labelsStackOffset.put(labelConfig.corner, offset + boxHeight + labelConfig.stackGap);
     }
 
     private static void drawHotbar(GuiGraphics context)

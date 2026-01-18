@@ -9,7 +9,6 @@ import static com.drypted.pvpTrainer.client.PvpTrainerClient.MOD_ID;
 @Config(name = MOD_ID)
 public class ModConfig implements ConfigData
 {
-    public static final ModConfig DEFAULT = new ModConfig();
     public boolean enableHud = true;
     public boolean showInCreative = true;
     public LabelConfig moveStateLabelConfig = LabelConfig.createMoveStateLabelDefaultConfig();
@@ -18,7 +17,7 @@ public class ModConfig implements ConfigData
     public boolean detectMouseButtons = true;
     public Hotbar hotbar = new Hotbar();
 
-    public enum LabelPosition
+    public enum LabelCorner
     {
         TOP_LEFT,
         TOP_RIGHT,
@@ -31,9 +30,12 @@ public class ModConfig implements ConfigData
     public static class LabelConfig
     {
         public boolean enabled = true;
-        public LabelPosition position;
-        public int textColor = Colors.iWHITE; // white
-        public int backgroundColor = Colors.iBLACK; // black
+        // corner defines the corner
+        public LabelCorner corner;
+        // position index defines the position in the stack (0 = first, 1 = second, etc)
+        public int positionIndex;
+        public int textColor = Colors.iWHITE;
+        public int backgroundColor = Colors.iBLACK;
         public int backgroundColorOpacity;
         public int padding = 5;
         public int margin = 6;
@@ -44,7 +46,7 @@ public class ModConfig implements ConfigData
         public static LabelConfig createDefaultConfig()
         {
             LabelConfig cfg = new LabelConfig();
-            cfg.position = LabelPosition.TOP_LEFT;
+            cfg.corner = LabelCorner.TOP_LEFT;
             cfg.backgroundColorOpacity = 128;
             cfg.padding = 5;
             cfg.margin = 6;
@@ -55,7 +57,7 @@ public class ModConfig implements ConfigData
         public static LabelConfig createMoveStateLabelDefaultConfig()
         {
             LabelConfig cfg = new LabelConfig();
-            cfg.position = LabelPosition.ABOVE_HOTBAR;
+            cfg.corner = LabelCorner.ABOVE_HOTBAR;
             cfg.textColor = Colors.iYELLOW; // yellow
             cfg.backgroundColorOpacity = 64;
             cfg.padding = 4;
@@ -67,7 +69,7 @@ public class ModConfig implements ConfigData
         public static LabelConfig createPitchAngleDefaultConfig()
         {
             LabelConfig cfg = new LabelConfig();
-            cfg.position = LabelPosition.CROSSHAIR;
+            cfg.corner = LabelCorner.CROSSHAIR;
             cfg.backgroundColorOpacity = 0;
             cfg.padding = 0;
             cfg.margin = 24;

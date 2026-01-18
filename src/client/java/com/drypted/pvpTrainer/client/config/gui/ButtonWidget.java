@@ -17,26 +17,31 @@ public class ButtonWidget extends AbstractWidget
 {
     private static final Font FONT = Minecraft.getInstance().font;
 
-    private final String text;
+    private String text;
+    private final int padding;
+    private final boolean isRounded;
     private final Color bgColor;
     private final Color fgColor;
-    private final int padding;
-    private final int hoverColor = Colors.WHITE.asInt();
-    private final int clickColor = Colors.YELLOW.asInt();
-    private boolean isToggleButton = true;
-    private boolean isTextCentered = false;
-    private boolean pressed = false;
+    private final Color hoverColor;
+    private final Color clickColor;
+    private boolean isToggleButton;
+    private boolean isTextCentered;
+    private boolean pressed;
 
     // callback
-    private Consumer<MouseButtonEvent> onClickCallback;
+    private Consumer<MouseButtonEvent> onClickCallback = (e) -> {
+    };
 
-    public ButtonWidget(int x, int y, String text, Color bgColor, Color fgColor, int padding)
+    public ButtonWidget(int x, int y, int padding, boolean isRounded, String text, Color bgColor, Color fgColor, Color hoverColor, Color clickColor)
     {
         super(x, y, 0, 0, Component.empty());
         this.text = text;
+        this.padding = padding;
+        this.isRounded = isRounded;
         this.bgColor = bgColor;
         this.fgColor = fgColor;
-        this.padding = padding;
+        this.hoverColor = hoverColor;
+        this.clickColor = clickColor;
 
         int textW = FONT.width(text);
         int textH = FONT.lineHeight;
@@ -56,22 +61,42 @@ public class ButtonWidget extends AbstractWidget
         final int endPosX = startPosX + width;
         final int endPosY = startPosY + height;
 
-        // Main body; inset by 1 pixel to allow for outline
-        g.fill(startPosX + 1, startPosY + 1, endPosX - 1, endPosY - 1, bgColor.asInt());
+        int outlineColor = this.pressed ? clickColor.asInt() : this.isHovered ? hoverColor.asInt() : bgColor.asInt();
 
-        int outlineColor = this.pressed ? clickColor : this.isHovered ? hoverColor : bgColor.asInt();
+        if (isRounded)
+        {
+            // Main body; inset by 1 pixel to allow for outline
+            g.fill(startPosX + 1, startPosY + 1, endPosX - 1, endPosY - 1, bgColor.asInt());
 
-        // stripes
-        g.fill(startPosX, startPosY + 1, startPosX + 1, endPosY - 1, outlineColor); // left
-        g.fill(endPosX - 1, startPosY + 1, endPosX, endPosY - 1, outlineColor); // right
-        g.fill(startPosX + 1, startPosY, endPosX - 1, startPosY + 1, outlineColor); // top
-        g.fill(startPosX + 1, endPosY - 1, endPosX - 1, endPosY, outlineColor); // top
+            // stripes
+            g.fill(startPosX, startPosY + 1, startPosX + 1, endPosY - 1, outlineColor); // left
+            g.fill(endPosX - 1, startPosY + 1, endPosX, endPosY - 1, outlineColor); // right
+            g.fill(startPosX + 1, startPosY, endPosX - 1, startPosY + 1, outlineColor); // top
+            g.fill(startPosX + 1, endPosY - 1, endPosX - 1, endPosY, outlineColor); // top
 
-        // corner pixels
-        g.fill(startPosX + 1, startPosY + 1, startPosX + 2, startPosY + 2, outlineColor); // top-left
-        g.fill(endPosX - 2, startPosY + 1, endPosX - 1, startPosY + 2, outlineColor); // top-right
-        g.fill(startPosX + 1, endPosY - 2, startPosX + 2, endPosY - 1, outlineColor); // bottom-left
-        g.fill(endPosX - 2, endPosY - 2, endPosX - 1, endPosY - 1, outlineColor); // bottom-right
+            // corner pixels
+            if (this.isHovered() || this.pressed)
+            {
+                g.fill(startPosX + 1, startPosY + 1, startPosX + 2, startPosY + 2, outlineColor); // top-left
+                g.fill(endPosX - 2, startPosY + 1, endPosX - 1, startPosY + 2, outlineColor); // top-right
+                g.fill(startPosX + 1, endPosY - 2, startPosX + 2, endPosY - 1, outlineColor); // bottom-left
+                g.fill(endPosX - 2, endPosY - 2, endPosX - 1, endPosY - 1, outlineColor); // bottom-right
+            }
+        }
+        else
+        {
+            // Main body
+            g.fill(startPosX, startPosY, endPosX, endPosY, bgColor.asInt());
+
+            // outline
+            if (this.isHovered() || this.pressed)
+            {
+                g.fill(startPosX, startPosY + 1, startPosX + 1, endPosY, outlineColor); // left; see y only
+                g.fill(startPosX, startPosY, endPosX - 1, startPosY + 1, outlineColor); // top; see x only
+                g.fill(endPosX - 1, startPosY, endPosX, endPosY - 1, outlineColor); // right; see y only
+                g.fill(startPosX + 1, endPosY - 1, endPosX, endPosY, outlineColor); // bottom; see x only
+            }
+        }
 
         int textX;
         int textY;
@@ -91,7 +116,7 @@ public class ButtonWidget extends AbstractWidget
         }
 
         // Scaled text
-        g.drawString(FONT, text, textX, textY, this.pressed ? clickColor : fgColor.asInt(), false);
+        g.drawString(FONT, text, textX, textY, fgColor.asInt(), false);
     }
 
     @Override
@@ -163,6 +188,25 @@ public class ButtonWidget extends AbstractWidget
         this.pressed = pressed;
     }
 
+    public String getText()
+    {
+        return this.text;
+    }
+
+    public void setText(String text)
+    {
+        this.text = text;
+    }
+
+    // HOVER & CLICK TYPE
+    // can be outline or fill
+
+    public enum HoverType
+    {
+        OUTLINE,
+        FILL
+    }
+
     // BUILDER ------------------------------------------------------------------------------------
 
     public static Builder builder(int x, int y, String text)
@@ -174,13 +218,18 @@ public class ButtonWidget extends AbstractWidget
     {
         private final int x;
         private final int y;
+        private int width = 0;
+        private int height = 0;
         private final String text;
 
-        private Color bgColor = Colors.BLACK.withAlpha(128);
-        private Color fgColor = Colors.WHITE;
         private int padding = 5;
+        private boolean isRounded = false;
+        private Color bgColor = Colors.BLACK.withHalfAlpha();
+        private Color fgColor = Colors.WHITE;
+        private Color hoverColor = Colors.WHITE;
+        private Color clickColor = Colors.YELLOW;
         private boolean textCentered = false;
-        private boolean toggleButton = true;
+        private boolean toggleButton = false;
         private boolean pressed = false;
         private Consumer<MouseButtonEvent> onClick = (e) -> {
         };
@@ -190,6 +239,30 @@ public class ButtonWidget extends AbstractWidget
             this.x = x;
             this.y = y;
             this.text = text;
+        }
+
+        public Builder width(int width)
+        {
+            this.width = width;
+            return this;
+        }
+
+        public Builder height(int height)
+        {
+            this.height = height;
+            return this;
+        }
+
+        public Builder padding(int padding)
+        {
+            this.padding = padding;
+            return this;
+        }
+
+        public Builder isRounded(boolean isRounded)
+        {
+            this.isRounded = isRounded;
+            return this;
         }
 
         public Builder bgColor(Color bgColor)
@@ -204,9 +277,15 @@ public class ButtonWidget extends AbstractWidget
             return this;
         }
 
-        public Builder padding(int padding)
+        public Builder hoverColor(Color hoverColor)
         {
-            this.padding = padding;
+            this.hoverColor = hoverColor;
+            return this;
+        }
+
+        public Builder clickColor(Color clickColor)
+        {
+            this.clickColor = clickColor;
             return this;
         }
 
@@ -236,12 +315,15 @@ public class ButtonWidget extends AbstractWidget
 
         public ButtonWidget build()
         {
-            ButtonWidget button = new ButtonWidget(x, y, text, bgColor, fgColor, padding);
+            ButtonWidget button = new ButtonWidget(x, y, padding, isRounded, text, bgColor, fgColor, hoverColor, clickColor);
 
             button.setTextCentered(textCentered);
             button.setToggleButton(toggleButton);
             button.setOnClick(onClick);
             button.pressed = this.pressed;
+
+            if (this.width > 0) button.setWidth(this.width);
+            if (this.height > 0) button.setHeight(this.height);
 
             return button;
         }

@@ -36,7 +36,18 @@ public class ScrollBoxWidget extends AbstractScrollArea
 
     /* ---------------- Children ---------------- */
 
-    public void addChild(AbstractWidget widget, int contentX, int contentY)
+    public void addChildRow(AbstractWidget widget)
+    {
+        int contentY = padding;
+        if (!children.isEmpty())
+        {
+            WidgetEntry lastEntry = children.getLast();
+            contentY = lastEntry.contentY + lastEntry.widget.getHeight() + padding;
+        }
+        this.children.add(new WidgetEntry(widget, padding, contentY));
+    }
+
+    public void addChildAt(AbstractWidget widget, int contentX, int contentY)
     {
         this.children.add(new WidgetEntry(widget, contentX, contentY));
     }
@@ -197,7 +208,7 @@ public class ScrollBoxWidget extends AbstractScrollArea
         private final int height;
         private int padding = 4;
 
-        private Color bgColor = Colors.BLACK.withAlpha(128);
+        private Color bgColor = Colors.BLACK.withHalfAlpha();
         private Color outlineColor = Colors.WHITE;
         private Color scrollbarColor = Colors.CLEAR;
         private Color scrollerColor = Colors.WHITE;

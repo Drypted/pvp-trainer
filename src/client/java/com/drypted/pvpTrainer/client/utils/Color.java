@@ -45,4 +45,9 @@ public class Color
     {
         return fromRGBA((this.color >> 16) & 0xFF, (this.color >> 8) & 0xFF, this.color & 0xFF, alpha);
     }
+
+    public Color withHalfAlpha()
+    {
+        return this.withAlpha(128);
+    }
 }
