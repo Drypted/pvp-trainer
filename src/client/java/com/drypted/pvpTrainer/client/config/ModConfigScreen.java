@@ -387,6 +387,7 @@ class ModConfigScreen extends Screen
         else
         {
             doneButton.setText("Invalid Config!");
+            doneButton.setHighlighted(true);
             doneButton.setOutlineColor(Colors.RED);
             doneButton.setBackgroundColor(Colors.RED.withAlpha(64));
             doneButton.setHoverColor(Colors.RED.withAlpha(128));

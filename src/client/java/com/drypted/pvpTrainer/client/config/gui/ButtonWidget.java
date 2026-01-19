@@ -20,6 +20,7 @@ public class ButtonWidget extends AbstractWidget
     private String text;
     private final int padding;
     private final boolean isRounded;
+    private final int outlineThickness;
     private Color backgroundColor;
     private Color textColor;
     private Color hoverColor;
@@ -27,23 +28,27 @@ public class ButtonWidget extends AbstractWidget
     private boolean isToggleButton;
     private boolean isTextCentered;
     private boolean pressed;
+    private boolean highlighted;
 
     private Color outlineColor = Colors.CLEAR;
+    private float scale;
 
     // callback
     private BiConsumer<MouseButtonEvent, Boolean> onClickCallback = (e, pressed) -> {
     };
 
-    public ButtonWidget(int x, int y, int padding, boolean isRounded, String text, Color backgroundColor, Color textColor, Color hoverColor, Color clickColor)
+    public ButtonWidget(int x, int y, int padding, boolean isRounded, String text, int outlineThickness, Color backgroundColor, Color textColor, Color hoverColor, Color clickColor, float scale)
     {
         super(x, y, 0, 0, Component.empty());
         this.text = text;
         this.padding = padding;
         this.isRounded = isRounded;
+        this.outlineThickness = outlineThickness;
         this.backgroundColor = backgroundColor;
         this.textColor = textColor;
         this.hoverColor = hoverColor;
         this.clickColor = clickColor;
+        this.scale = scale;
 
         int textW = FONT.width(text);
         int textH = FONT.lineHeight;
@@ -63,45 +68,25 @@ public class ButtonWidget extends AbstractWidget
         final int endPosX = startPosX + width;
         final int endPosY = startPosY + height;
 
-        int outlineColor;
-        if (this.getOutlineColor() != Colors.CLEAR) outlineColor = this.getOutlineColor().asInt();
-        else if (this.pressed) outlineColor = clickColor.asInt();
-        else outlineColor = this.isHovered ? hoverColor.asInt() : backgroundColor.asInt();
+        Color outlineColor;
+        if (this.getOutlineColor() != Colors.CLEAR) outlineColor = this.getOutlineColor();
+        else if (this.pressed) outlineColor = clickColor;
+        else outlineColor = this.isHovered ? hoverColor : backgroundColor;
 
-        if (isRounded)
-        {
-            // Main body; inset by 1 pixel to allow for outline
-            g.fill(startPosX + 1, startPosY + 1, endPosX - 1, endPosY - 1, backgroundColor.asInt());
+        boolean renderOutline = this.isHovered() || this.isPressed() || this.isHighlighted();
 
-            // stripes
-            g.fill(startPosX, startPosY + 1, startPosX + 1, endPosY - 1, outlineColor); // left
-            g.fill(endPosX - 1, startPosY + 1, endPosX, endPosY - 1, outlineColor); // right
-            g.fill(startPosX + 1, startPosY, endPosX - 1, startPosY + 1, outlineColor); // top
-            g.fill(startPosX + 1, endPosY - 1, endPosX - 1, endPosY, outlineColor); // top
-
-            // corner pixels
-            if (this.isHovered() || this.pressed || this.getOutlineColor() != Colors.CLEAR)
-            {
-                g.fill(startPosX + 1, startPosY + 1, startPosX + 2, startPosY + 2, outlineColor); // top-left
-                g.fill(endPosX - 2, startPosY + 1, endPosX - 1, startPosY + 2, outlineColor); // top-right
-                g.fill(startPosX + 1, endPosY - 2, startPosX + 2, endPosY - 1, outlineColor); // bottom-left
-                g.fill(endPosX - 2, endPosY - 2, endPosX - 1, endPosY - 1, outlineColor); // bottom-right
-            }
-        }
-        else
-        {
-            // Main body
-            g.fill(startPosX, startPosY, endPosX, endPosY, backgroundColor.asInt());
-
-            // outline
-            if (this.isHovered() || this.pressed || this.getOutlineColor() != Colors.CLEAR)
-            {
-                g.fill(startPosX, startPosY + 1, startPosX + 1, endPosY, outlineColor); // left; see y only
-                g.fill(startPosX, startPosY, endPosX - 1, startPosY + 1, outlineColor); // top; see x only
-                g.fill(endPosX - 1, startPosY, endPosX, endPosY - 1, outlineColor); // right; see y only
-                g.fill(startPosX + 1, endPosY - 1, endPosX, endPosY, outlineColor); // bottom; see x only
-            }
-        }
+        RenderUtils.fillRectangle(
+                g,
+                startPosX,
+                startPosY,
+                endPosX,
+                endPosY,
+                this.isRounded,
+                this.outlineThickness,
+                renderOutline,
+                this.backgroundColor,
+                outlineColor
+        );
 
         int textX;
         int textY;
@@ -254,6 +239,31 @@ public class ButtonWidget extends AbstractWidget
         this.clickColor = clickColor;
     }
 
+    public boolean isHighlighted()
+    {
+        return this.highlighted;
+    }
+
+    public void setHighlighted(boolean highlighted)
+    {
+        this.highlighted = highlighted;
+    }
+
+    public int getOutlineThickness()
+    {
+        return outlineThickness;
+    }
+
+    public float getScale()
+    {
+        return scale;
+    }
+
+    public void setScale(float scale)
+    {
+        this.scale = scale;
+    }
+
     // BUILDER ------------------------------------------------------------------------------------
 
     public static Builder builder(int x, int y, String text)
@@ -267,6 +277,7 @@ public class ButtonWidget extends AbstractWidget
         private final int y;
         private int width = 0;
         private int height = 0;
+        private float scale = 1;
         private final String text;
 
         private int padding = 5;
@@ -280,6 +291,7 @@ public class ButtonWidget extends AbstractWidget
         private boolean pressed = false;
 
         private Color outlineColor = Colors.CLEAR;
+        private int outlineThickness = 1;
 
         private BiConsumer<MouseButtonEvent, Boolean> onClick = (e, pressed) -> {
         };
@@ -363,6 +375,18 @@ public class ButtonWidget extends AbstractWidget
             return this;
         }
 
+        public Builder outlineThickness(int outlineThickness)
+        {
+            this.outlineThickness = outlineThickness;
+            return this;
+        }
+
+        public Builder scale(float scale)
+        {
+            this.scale = scale;
+            return this;
+        }
+
         public Builder onClick(BiConsumer<MouseButtonEvent, Boolean> onClick)
         {
             this.onClick = onClick;
@@ -371,7 +395,19 @@ public class ButtonWidget extends AbstractWidget
 
         public ButtonWidget build()
         {
-            ButtonWidget button = new ButtonWidget(x, y, padding, isRounded, text, bgColor, fgColor, hoverColor, clickColor);
+            ButtonWidget button = new ButtonWidget(
+                    x,
+                    y,
+                    padding,
+                    isRounded,
+                    text,
+                    outlineThickness,
+                    bgColor,
+                    fgColor,
+                    hoverColor,
+                    clickColor,
+                    scale
+            );
 
             button.setTextCentered(textCentered);
             button.setToggleButton(toggleButton);
