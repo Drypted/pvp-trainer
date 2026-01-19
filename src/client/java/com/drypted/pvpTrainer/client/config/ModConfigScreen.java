@@ -7,6 +7,7 @@ import com.drypted.pvpTrainer.client.hudOverlay.PVPLabels;
 import com.drypted.pvpTrainer.client.hudOverlay.SharedConstants;
 import com.drypted.pvpTrainer.client.utils.Colors;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -24,8 +25,9 @@ class ModConfigScreen extends Screen
     public static final int BUTTON_WIDTH = 80;
     public static final int BUTTON_HEIGHT = 20;
     public static final int SCREEN_MARGIN = 6;
+    public static final int SCROLL_BOX_MARGIN = 4;
     public static final int SCROLL_BOX_BUTTON_WIDTH = 80;
-    private static final int SCROLL_BOX_WIDTH = SCROLL_BOX_BUTTON_WIDTH + (SCREEN_MARGIN * 2);
+    private static final int SCROLL_BOX_WIDTH = SCROLL_BOX_BUTTON_WIDTH + (SCROLL_BOX_MARGIN * 2);
 
     private final List<ScreenLabel> topLeftScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
     private final List<ScreenLabel> topRightScreenLabels = new ArrayList<>(LABELS_PER_CORNER);
@@ -153,25 +155,26 @@ class ModConfigScreen extends Screen
                         SCROLL_BOX_WIDTH,
                         top_left_cursor - SCREEN_MARGIN
                 )
+                .margin(SCROLL_BOX_MARGIN)
                 .build();
         topRightBox = ScrollBoxWidget.builder(
                 SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - SCROLL_BOX_WIDTH,
                 SCREEN_MARGIN,
                 SCROLL_BOX_WIDTH,
                 top_right_cursor - SCREEN_MARGIN
-        ).build();
+        ).margin(SCROLL_BOX_MARGIN).build();
         bottomLeftBox = ScrollBoxWidget.builder(
                 SCREEN_MARGIN + BUTTON_WIDTH + SCREEN_MARGIN,
                 bottom_left_cursor,
                 SCROLL_BOX_WIDTH,
                 SharedConstants.GetScreenH() - SCREEN_MARGIN - bottom_left_cursor
-        ).build();
+        ).margin(SCROLL_BOX_MARGIN).build();
         bottomRightBox = ScrollBoxWidget.builder(
                 SharedConstants.GetScreenW() - SCREEN_MARGIN - BUTTON_WIDTH - SCREEN_MARGIN - SCROLL_BOX_WIDTH,
                 bottom_right_cursor,
                 SCROLL_BOX_WIDTH,
                 SharedConstants.GetScreenH() - SCREEN_MARGIN - bottom_right_cursor
-        ).build();
+        ).margin(SCROLL_BOX_MARGIN).build();
 
         ScrollBoxWidget[] scrollBoxWidgets = new ScrollBoxWidget[]{topLeftBox, topRightBox, bottomLeftBox, bottomRightBox};
 
@@ -182,11 +185,13 @@ class ModConfigScreen extends Screen
             // options
             for (LabelType labelType : LabelType.values())
             {
-                box.addChildRow(ButtonWidget.builder(0, 0, labelType.getName())
-                                        .width(SCROLL_BOX_BUTTON_WIDTH)
-                                        .centeredText(true)
-                                        .onClick((mEv, pressed) -> onClickLabelInBox(labelType))
-                                        .build());
+                box.addChildRow(
+                        ButtonWidget.builder(0, 0, labelType.getName())
+                                .width(SCROLL_BOX_BUTTON_WIDTH)
+                                .centeredText(true)
+                                .onClick((mEv, pressed) -> onClickLabelInBox(labelType))
+                                .build(), labelType.getId()
+                );
             }
             // hidden by default
             box.visible = false;
@@ -212,21 +217,7 @@ class ModConfigScreen extends Screen
 
         for (ScreenLabel label : all_labels)
         {
-            label.getButton().setOnClick((mEv, pressed) -> {
-                selectedLabel = label;
-
-                for (ScreenLabel otherLabel : all_labels)
-                {
-                    if (otherLabel != selectedLabel)
-                    {
-                        otherLabel.getButton().setPressed(false);
-                        otherLabel.getBox().visible = false;
-                    }
-                }
-
-                // show current box
-                selectedLabel.getBox().visible = pressed;
-            });
+            label.getButton().setOnClick((mEv, pressed) -> onClickLabel(label, pressed, all_labels));
         }
     }
 
@@ -302,7 +293,7 @@ class ModConfigScreen extends Screen
         _updateTypeFromConfig(config.pitchAngleLabelConfig, LabelType.PITCH_ANGLE);
         _updateTypeFromConfig(config.pressedKeyLabelConfig, LabelType.PRESSED_KEY);
 
-        // update button text from label types
+        // update button text from clickedLabel types
         _updateTextFromTypes(topLeftScreenLabels);
         _updateTextFromTypes(topRightScreenLabels);
         _updateTextFromTypes(bottomLeftScreenLabels);
@@ -317,7 +308,7 @@ class ModConfigScreen extends Screen
         if (moveStateCorner == ModConfig.LabelCorner.NONE || moveStateIndex < 0 || moveStateIndex >= LABELS_PER_CORNER)
         {
             PvpTrainerClient.LOGGER.warn(
-                    "Invalid label config for type {}: corner={}, index={}",
+                    "Invalid clickedLabel config for type {}: corner={}, index={}",
                     type,
                     moveStateCorner,
                     moveStateIndex
@@ -342,7 +333,7 @@ class ModConfigScreen extends Screen
         }
     }
 
-    /// Removes the given label type from all screen labels
+    /// Removes the given clickedLabel type from all screen labels
     private void clearLabelType(LabelType type)
     {
         _clearLabelTypeFromList(topLeftScreenLabels, type);
@@ -410,7 +401,7 @@ class ModConfigScreen extends Screen
         onClose();
     }
 
-    /// On click handler for label selection buttons; Move State, Pitch Angle, Pressed Key
+    /// On click handler for clickedLabel selection buttons; Move State, Pitch Angle, Pressed Key
     private void onClickLabelInBox(LabelType pressedLabel)
     {
         // clear previous type
@@ -421,7 +412,6 @@ class ModConfigScreen extends Screen
         }
 
         clearLabelType(pressedLabel);
-        PvpTrainerClient.LOGGER.info("Selected Label before config update: {}", selectedLabel.getButton().getText());
 
         switch (pressedLabel)
         {
@@ -442,13 +432,44 @@ class ModConfigScreen extends Screen
             }
         }
 
-        // update selected label
+        // update selected clickedLabel
         selectedLabel.setLabelType(pressedLabel);
         selectedLabel.getButton().setPressed(false);
         selectedLabel.getBox().visible = false;
 
         this.updateScreen();
+    }
 
-        PvpTrainerClient.LOGGER.info("Selected Label after config update: {}", selectedLabel.getButton().getText());
+    private void onClickLabel(ScreenLabel clickedLabel, Boolean isPressed, List<ScreenLabel> all_labels)
+    {
+        selectedLabel = clickedLabel;
+
+        for (ScreenLabel otherLabel : all_labels)
+        {
+            if (otherLabel != selectedLabel)
+            {
+                otherLabel.getButton().setPressed(false);
+                otherLabel.getBox().visible = false;
+            }
+        }
+
+        // show current box
+        selectedLabel.getBox().visible = isPressed;
+
+        // unhighlight all buttons in box
+        for (AbstractWidget widget : selectedLabel.getBox().getAllChildren())
+        {
+            if (widget instanceof ButtonWidget button)
+            {
+                button.setPressed(false);
+            }
+        }
+
+        // highlight current selection in box
+        ButtonWidget selectedButton = ((ButtonWidget) selectedLabel.getBox().getChild(clickedLabel.getLabelType().getId()));
+        if (selectedButton != null)
+        {
+            selectedButton.setPressed(true);
+        }
     }
 }

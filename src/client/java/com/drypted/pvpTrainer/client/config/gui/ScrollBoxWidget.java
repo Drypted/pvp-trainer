@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,8 @@ import java.util.List;
 public class ScrollBoxWidget extends AbstractScrollArea
 {
     private final List<WidgetEntry> children = new ArrayList<>();
-    private final int padding;
+    private final int margin;
+    private final int spacing;
     private final Color bgColor;
     private final Color outlineColor;
     private final Color scrollbarColor;
@@ -24,11 +26,12 @@ public class ScrollBoxWidget extends AbstractScrollArea
 
     private boolean scrolling;
 
-    public ScrollBoxWidget(int x, int y, int width, int height, int padding, Color bgColor, Color outlineColor, Color scrollbarColor, Color scrollerColor)
+    public ScrollBoxWidget(int x, int y, int width, int height, int margin, int spacing, Color bgColor, Color outlineColor, Color scrollbarColor, Color scrollerColor)
     {
         super(x, y, width, height, Component.empty());
+        this.margin = margin;
         this.bgColor = bgColor;
-        this.padding = padding;
+        this.spacing = spacing;
         this.outlineColor = outlineColor;
         this.scrollbarColor = scrollbarColor;
         this.scrollerColor = scrollerColor;
@@ -36,20 +39,43 @@ public class ScrollBoxWidget extends AbstractScrollArea
 
     /* ---------------- Children ---------------- */
 
-    public void addChildRow(AbstractWidget widget)
+    public void addChildRow(AbstractWidget widget, int id)
     {
-        int contentY = padding;
+        int contentY = margin;
         if (!children.isEmpty())
         {
             WidgetEntry lastEntry = children.getLast();
-            contentY = lastEntry.contentY + lastEntry.widget.getHeight() + padding;
+            contentY = lastEntry.contentY + lastEntry.widget.getHeight() + spacing;
         }
-        this.children.add(new WidgetEntry(widget, padding, contentY));
+        this.children.add(new WidgetEntry(widget, margin, contentY, id));
     }
 
-    public void addChildAt(AbstractWidget widget, int contentX, int contentY)
+    public void addChildAt(AbstractWidget widget, int contentX, int contentY, int id)
     {
-        this.children.add(new WidgetEntry(widget, contentX, contentY));
+        this.children.add(new WidgetEntry(widget, contentX, contentY, id));
+    }
+
+    @Nullable
+    public AbstractWidget getChild(int id)
+    {
+        for (WidgetEntry entry : children)
+        {
+            if (entry.id == id)
+            {
+                return entry.widget;
+            }
+        }
+        return null;
+    }
+
+    public List<AbstractWidget> getAllChildren()
+    {
+        List<AbstractWidget> widgets = new ArrayList<>();
+        for (WidgetEntry entry : children)
+        {
+            widgets.add(entry.widget);
+        }
+        return widgets;
     }
 
 
@@ -68,7 +94,7 @@ public class ScrollBoxWidget extends AbstractScrollArea
         {
             max = Math.max(max, e.contentY + e.widget.getHeight());
         }
-        return max + padding;
+        return max + margin;
     }
 
     /* ---------------- Render ---------------- */
@@ -206,7 +232,8 @@ public class ScrollBoxWidget extends AbstractScrollArea
         private final int y;
         private final int width;
         private final int height;
-        private int padding = 4;
+        private int margin = 4;
+        private int spacing = 0;
 
         private Color bgColor = Colors.BLACK.withHalfAlpha();
         private Color outlineColor = Colors.WHITE;
@@ -221,9 +248,15 @@ public class ScrollBoxWidget extends AbstractScrollArea
             this.height = height;
         }
 
-        public Builder padding(int padding)
+        public Builder margin(int margin)
         {
-            this.padding = padding;
+            this.margin = margin;
+            return this;
+        }
+
+        public Builder spacing(int spacing)
+        {
+            this.spacing = spacing;
             return this;
         }
 
@@ -253,7 +286,18 @@ public class ScrollBoxWidget extends AbstractScrollArea
 
         public ScrollBoxWidget build()
         {
-            return new ScrollBoxWidget(x, y, width, height, padding, bgColor, outlineColor, scrollbarColor, scrollerColor);
+            return new ScrollBoxWidget(
+                    x,
+                                       y,
+                                       width,
+                                       height,
+                                       margin,
+                                       spacing,
+                                       bgColor,
+                                       outlineColor,
+                                       scrollbarColor,
+                                       scrollerColor
+            );
         }
     }
 
@@ -262,12 +306,23 @@ public class ScrollBoxWidget extends AbstractScrollArea
         final AbstractWidget widget;
         final int contentX;
         final int contentY;
+        final int id;
 
-        WidgetEntry(AbstractWidget widget, int x, int y)
+        WidgetEntry(AbstractWidget widget, int x, int y, int id)
         {
             this.widget = widget;
             this.contentX = x;
             this.contentY = y;
+            this.id = id;
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            WidgetEntry other = (WidgetEntry) obj;
+            return this.id == other.id;
         }
     }
 
