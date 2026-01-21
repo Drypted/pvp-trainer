@@ -4,18 +4,20 @@ import com.drypted.pvpTrainer.client.utils.Color;
 import com.drypted.pvpTrainer.client.utils.Colors;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScrollBoxWidget extends AbstractScrollArea
+public class ScrollBoxWidget extends AbstractWidget
 {
+    private static final int SCROLLBAR_WIDTH = 6;
+
     private final List<WidgetEntry> children = new ArrayList<>();
     private final int margin;
     private final int spacing;
@@ -24,6 +26,7 @@ public class ScrollBoxWidget extends AbstractScrollArea
     private final Color scrollbarColor;
     private final Color scrollerColor;
 
+    private double scrollAmount;
     private boolean scrolling;
 
     public ScrollBoxWidget(int x, int y, int width, int height, int margin, int spacing, Color bgColor, Color outlineColor, Color scrollbarColor, Color scrollerColor)
@@ -78,16 +81,14 @@ public class ScrollBoxWidget extends AbstractScrollArea
         return widgets;
     }
 
-
-    /* ---------------- Scroll ---------------- */
-
     public void removeChild(AbstractWidget widget)
     {
         children.removeIf(entry -> entry.widget == widget);
     }
 
-    @Override
-    protected int contentHeight()
+    /* ---------------- Scroll Logic ---------------- */
+
+    private int contentHeight()
     {
         int max = 0;
         for (WidgetEntry e : children)
@@ -97,13 +98,47 @@ public class ScrollBoxWidget extends AbstractScrollArea
         return max + margin;
     }
 
-    /* ---------------- Render ---------------- */
-
-    @Override
-    protected double scrollRate()
+    private double scrollRate()
     {
         return 10.0;
     }
+
+    private int maxScrollAmount()
+    {
+        return Math.max(0, contentHeight() - height);
+    }
+
+    private boolean scrollbarVisible()
+    {
+        return maxScrollAmount() > 0;
+    }
+
+    private int scrollerHeight()
+    {
+        return Mth.clamp((int) ((float) (height * height) / (float) contentHeight()), 32, height - 8);
+    }
+
+    private int scrollBarX()
+    {
+        return getRight() - SCROLLBAR_WIDTH;
+    }
+
+    private int scrollBarY()
+    {
+        return Math.max(getY(), (int) scrollAmount * (height - scrollerHeight()) / maxScrollAmount() + getY());
+    }
+
+    private void setScrollAmount(double amount)
+    {
+        this.scrollAmount = Mth.clamp(amount, 0.0, (double) maxScrollAmount());
+    }
+
+    private boolean isOverScrollbar(double mouseX, double mouseY)
+    {
+        return mouseX >= scrollBarX() && mouseX <= scrollBarX() + SCROLLBAR_WIDTH && mouseY >= getY() && mouseY < getBottom();
+    }
+
+    /* ---------------- Render ---------------- */
 
     @Override
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta)
@@ -122,14 +157,13 @@ public class ScrollBoxWidget extends AbstractScrollArea
 
     private void layoutChildren()
     {
-        int scroll = (int) scrollAmount();
+        int scroll = (int) scrollAmount;
 
         for (WidgetEntry e : children)
         {
             e.widget.setPosition(getX() + e.contentX, getY() + e.contentY - scroll);
         }
     }
-
 
     private void drawBackground(GuiGraphics g, int x1, int y1, int x2, int y2)
     {
@@ -158,15 +192,6 @@ public class ScrollBoxWidget extends AbstractScrollArea
         g.disableScissor();
     }
 
-    /* ---------------- Input ---------------- */
-
-    @Override
-    public boolean updateScrolling(MouseButtonEvent mouseButtonEvent)
-    {
-        this.scrolling = super.updateScrolling(mouseButtonEvent);
-        return this.scrolling;
-    }
-
     private void renderCustomScrollbar(GuiGraphics g, int mouseX, int mouseY)
     {
         if (!scrollbarVisible())
@@ -191,15 +216,63 @@ public class ScrollBoxWidget extends AbstractScrollArea
         }
     }
 
+    /* ---------------- Input ---------------- */
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
+    {
+        if (!visible)
+        {
+            return false;
+        }
+        setScrollAmount(scrollAmount - scrollY * scrollRate());
+        return true;
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick)
     {
+        // Check scrollbar first
+        if (scrollbarVisible() && isValidClickButton(e.buttonInfo()) && isOverScrollbar(e.x(), e.y()))
+        {
+            this.scrolling = true;
+            return true;
+        }
+
+        // Check children (in reverse order for proper z-order)
         for (int i = children.size() - 1; i >= 0; i--)
         {
             AbstractWidget w = children.get(i).widget;
             if (w.mouseClicked(e, doubleClick)) return true;
         }
+
         return false;
+    }
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent mouseButtonEvent, double deltaX, double deltaY)
+    {
+        if (scrolling)
+        {
+            if (mouseButtonEvent.y() < getY())
+            {
+                setScrollAmount(0.0);
+            }
+            else if (mouseButtonEvent.y() > getBottom())
+            {
+                setScrollAmount(maxScrollAmount());
+            }
+            else
+            {
+                double f = Math.max(1, maxScrollAmount());
+                int i = scrollerHeight();
+                double g = Math.max(1.0, f / (height - i));
+                setScrollAmount(scrollAmount + deltaY * g);
+            }
+            return true;
+        }
+
+        return super.mouseDragged(mouseButtonEvent, deltaX, deltaY);
     }
 
     @Override
@@ -288,34 +361,21 @@ public class ScrollBoxWidget extends AbstractScrollArea
         {
             return new ScrollBoxWidget(
                     x,
-                                       y,
-                                       width,
-                                       height,
-                                       margin,
-                                       spacing,
-                                       bgColor,
-                                       outlineColor,
-                                       scrollbarColor,
-                                       scrollerColor
+                    y,
+                    width,
+                    height,
+                    margin,
+                    spacing,
+                    bgColor,
+                    outlineColor,
+                    scrollbarColor,
+                    scrollerColor
             );
         }
     }
 
-    private static final class WidgetEntry
+    private record WidgetEntry(AbstractWidget widget, int contentX, int contentY, int id)
     {
-        final AbstractWidget widget;
-        final int contentX;
-        final int contentY;
-        final int id;
-
-        WidgetEntry(AbstractWidget widget, int x, int y, int id)
-        {
-            this.widget = widget;
-            this.contentX = x;
-            this.contentY = y;
-            this.id = id;
-        }
-
         @Override
         public boolean equals(Object obj)
         {
@@ -325,5 +385,4 @@ public class ScrollBoxWidget extends AbstractScrollArea
             return this.id == other.id;
         }
     }
-
 }
