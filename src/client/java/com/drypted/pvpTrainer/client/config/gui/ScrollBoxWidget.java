@@ -40,7 +40,7 @@ public class ScrollBoxWidget extends AbstractWidget
         this.scrollerColor = scrollerColor;
     }
 
-    /* ---------------- Children ---------------- */
+    /* Children */
 
     public void addChildRow(AbstractWidget widget, int id)
     {
@@ -86,7 +86,7 @@ public class ScrollBoxWidget extends AbstractWidget
         children.removeIf(entry -> entry.widget == widget);
     }
 
-    /* ---------------- Scroll Logic ---------------- */
+    /* Scroll Logic */
 
     private int contentHeight()
     {
@@ -138,7 +138,7 @@ public class ScrollBoxWidget extends AbstractWidget
         return mouseX >= scrollBarX() && mouseX <= scrollBarX() + SCROLLBAR_WIDTH && mouseY >= getY() && mouseY < getBottom();
     }
 
-    /* ---------------- Render ---------------- */
+    /* Render */
 
     @Override
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta)
@@ -216,7 +216,7 @@ public class ScrollBoxWidget extends AbstractWidget
         }
     }
 
-    /* ---------------- Input ---------------- */
+    /* Input */
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
@@ -292,7 +292,7 @@ public class ScrollBoxWidget extends AbstractWidget
     {
     }
 
-    /* ---------------- Builder ---------------- */
+    /* Builder */
 
     public static Builder builder(int x, int y, int width, int height)
     {
